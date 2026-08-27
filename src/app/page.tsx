@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { LandingPage } from "@/components/landing/landing-page"
 
 export const metadata: Metadata = {
-  title: "A living map of your daily life",
+  title: "City of Habits - A Living Map of Your Daily Life",
   description:
     "Turn recurring actions into buildings, streets, parks, and neighborhoods in a private personal city.",
 }
