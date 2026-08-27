@@ -1,0 +1,109 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { BarChart3, Building2, Compass, Map, Plus, Settings2 } from "lucide-react"
+
+import { CityLogo } from "@/components/city/city-logo"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarSeparator,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { Separator } from "@/components/ui/separator"
+
+const mainLinks = [
+  { href: "/city", label: "Your city", icon: Map },
+  { href: "/habit/new", label: "Build a habit", icon: Plus },
+  { href: "/report", label: "City report", icon: BarChart3 },
+]
+
+const exploreLinks = [
+  { href: "/district?id=all", label: "Districts", icon: Compass },
+  { href: "/settings", label: "Settings", icon: Settings2 },
+]
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+
+  return (
+    <SidebarProvider>
+      <Sidebar collapsible="icon" variant="sidebar">
+        <SidebarHeader className="p-3">
+          <CityLogo compact />
+        </SidebarHeader>
+        <SidebarSeparator />
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel className="font-label text-[0.58rem]">Navigate</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {mainLinks.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      render={<Link href={item.href} />}
+                      isActive={pathname === item.href}
+                      tooltip={item.label}
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          <SidebarGroup>
+            <SidebarGroupLabel className="font-label text-[0.58rem]">Explore</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {exploreLinks.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      render={<Link href={item.href} />}
+                      isActive={pathname === item.href}
+                      tooltip={item.label}
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter className="p-3">
+          <p className="font-label text-[0.52rem] leading-relaxed text-muted-foreground group-data-[collapsible=icon]:hidden">A private city for the life you are building.</p>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+      <SidebarInset>
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background/85 px-4 backdrop-blur sm:px-6">
+          <SidebarTrigger />
+          <Separator orientation="vertical" className="h-5" />
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Building2 aria-hidden="true" />
+            <span className="hidden sm:inline">Your living city</span>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <Link href="/" className="text-xs text-muted-foreground transition-colors hover:text-foreground">About the project</Link>
+          </div>
+        </header>
+        <main className="min-h-[calc(100vh-3.5rem)]">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
+  )
+}
