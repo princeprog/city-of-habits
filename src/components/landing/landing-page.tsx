@@ -1,14 +1,13 @@
+import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Compass, Download, LockKeyhole, Sparkles } from "lucide-react"
 
 import { CityLogo } from "@/components/city/city-logo"
-import { CityMap } from "@/components/city/city-map"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { sampleCheckIns, sampleHabits } from "@/lib/city/catalog"
 
 const principles = [
   {
@@ -38,39 +37,55 @@ const steps = [
 export function LandingPage() {
   return (
     <main className="min-h-screen overflow-hidden">
-      <section className="border-b">
-        <div className="mx-auto max-w-7xl px-5 py-6 sm:px-8 lg:px-12">
-          <header className="flex items-center justify-between">
-            <CityLogo />
-            <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex" aria-label="Main navigation">
-              <Link href="#how-it-works" className="hover:text-foreground">How it works</Link>
-              <Link href="#principles" className="hover:text-foreground">Principles</Link>
-              <Link href="/city" className={buttonVariants({ size: "sm" })}>Enter the city <ArrowRight data-icon="inline-end" /></Link>
-            </nav>
-            <Link href="/city" className={cn(buttonVariants({ size: "sm" }), "md:hidden")}>Enter <ArrowRight data-icon="inline-end" /></Link>
-          </header>
+      <header className="border-b">
+        <div className="mx-auto flex h-20 max-w-[93rem] items-center justify-between px-5 sm:px-8 lg:h-24 lg:px-12">
+          <CityLogo />
+          <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex" aria-label="Main navigation">
+            <Link href="#how-it-works" className="hover:text-foreground">
+              How it works
+            </Link>
+            <Link href="#principles" className="hover:text-foreground">
+              Principles
+            </Link>
+            <Link href="/city" className={buttonVariants({ size: "lg" })}>
+              Enter the city <ArrowRight data-icon="inline-end" />
+            </Link>
+          </nav>
+          <Link href="/city" className={cn(buttonVariants({ size: "sm" }), "md:hidden")}>
+            Enter <ArrowRight data-icon="inline-end" />
+          </Link>
+        </div>
+      </header>
 
-          <div className="grid items-center gap-12 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:py-24">
-            <div className="max-w-2xl">
-              <Badge variant="outline">Frontend-only / local-first</Badge>
-              <h1 className="mt-6 text-balance text-5xl font-semibold tracking-tight sm:text-7xl lg:text-8xl">See the life you are building.</h1>
-              <p className="mt-6 max-w-xl text-lg text-muted-foreground sm:text-xl">City of Habits turns recurring actions into a living personal city. Every check-in adds detail, warmth, and a reason to return.</p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Link href="/city" className={buttonVariants({ size: "lg" })}>Build your city <ArrowRight data-icon="inline-end" /></Link>
-                <Link href="#how-it-works" className={buttonVariants({ size: "lg", variant: "ghost" })}>Take the short tour</Link>
-              </div>
-              <p className="mt-4 text-sm text-muted-foreground">No account · Works offline · Export anytime</p>
+      <section className="border-b" aria-labelledby="landing-title">
+        <div className="mx-auto grid max-w-[93rem] items-center gap-12 px-5 py-12 sm:px-8 sm:py-16 lg:min-h-[calc(100svh-6rem)] lg:grid-cols-[0.85fr_1.15fr] lg:gap-16 lg:px-12 lg:py-12">
+          <div className="max-w-2xl lg:py-8">
+            <Badge variant="outline">Frontend-only / local-first</Badge>
+            <h1 id="landing-title" className="mt-8 text-balance text-5xl font-semibold tracking-tight sm:text-6xl xl:text-7xl">
+              See the life you are building.
+            </h1>
+            <p className="mt-6 max-w-xl text-lg text-muted-foreground sm:text-xl">City of Habits turns recurring actions into a living personal city. Every check-in adds detail, warmth, and a reason to return.</p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link href="/city" className={buttonVariants({ size: "lg" })}>
+                Build your city <ArrowRight data-icon="inline-end" />
+              </Link>
+              <Link href="#how-it-works" className={buttonVariants({ size: "lg", variant: "ghost" })}>
+                Take the short tour <ArrowRight data-icon="inline-end" />
+              </Link>
             </div>
-            <div className="relative lg:pl-4">
-              <CityMap habits={sampleHabits.map((habit) => ({ ...habit, relatedHabitIds: [...habit.relatedHabitIds] }))} checkIns={sampleCheckIns.map((checkIn) => ({ ...checkIn }))} sample className="min-h-[25rem] lg:min-h-[34rem]" />
-              <Card className="absolute -bottom-5 left-4 max-w-xs">
-                <CardHeader>
-                  <CardDescription>Tonight in the city</CardDescription>
-                  <CardTitle>The library has a new warm window.</CardTitle>
-                </CardHeader>
-              </Card>
-            </div>
+            <p className="mt-4 text-sm text-muted-foreground">No account · Works offline · Export anytime</p>
           </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Sample city</CardTitle>
+              <CardAction>
+                <Badge variant="outline">6 buildings</Badge>
+              </CardAction>
+            </CardHeader>
+            <CardContent>
+              <Image src="/sample-city-hero.png" alt="An isometric sample city with Mind, Creative, Connection, Work, Recovery, and Body districts connected by roads." width={1448} height={1086} sizes="(min-width: 1024px) 52vw, 100vw" className="aspect-[4/3] w-full object-cover" priority />
+            </CardContent>
+          </Card>
         </div>
       </section>
 
