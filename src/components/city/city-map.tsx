@@ -1,7 +1,7 @@
 import type { CSSProperties, KeyboardEvent } from "react"
 
 import { districtCatalog } from "@/lib/city/catalog"
-import { deriveGrowthStage, getHabitStage, projectCity } from "@/lib/city/rules"
+import { getHabitStage, projectCity } from "@/lib/city/rules"
 import type { CheckIn, Habit } from "@/types/city"
 import { BuildingIllustration } from "@/components/city/building-illustration"
 
@@ -74,17 +74,22 @@ export function CityMap({ habits, checkIns, onSelectHabit, sample = false, class
           const color = habit.colorToken
           const style = { "--building": `var(--city-${color})` } as CSSProperties
           const select = () => onSelectHabit?.(habit)
+          const interactiveProps = onSelectHabit
+            ? {
+                tabIndex: 0,
+                role: "button" as const,
+                "aria-label": `${habit.name}, ${getHabitStage(habit.id, checkIns)} stage`,
+                onClick: select,
+                onKeyDown: (event: KeyboardEvent<SVGGElement>) => handleKeyDown(event, select),
+              }
+            : {}
           return (
             <g
               key={element.id}
               transform={`translate(${habit.position.x - 6} ${habit.position.y - 9})`}
               style={style}
               filter={`url(#${mapId}-shadow)`}
-              tabIndex={onSelectHabit ? 0 : undefined}
-              role={onSelectHabit ? "button" : undefined}
-              aria-label={onSelectHabit ? `${habit.name}, ${getHabitStage(habit.id, checkIns)} stage` : undefined}
-              onClick={select}
-              onKeyDown={(event) => handleKeyDown(event, select)}
+              {...interactiveProps}
               className={onSelectHabit ? "cursor-pointer outline-none focus-visible:opacity-80" : undefined}
             >
               <BuildingIllustration type={habit.buildingType} stage={element.stage} color={color} status={habit.status} size={12} label={habit.name} />
