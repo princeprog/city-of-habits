@@ -70,7 +70,6 @@ export function CityMap({ habits, checkIns, onSelectHabit, sample = false, class
         {elements.filter((element) => element.kind === "building").map((element) => {
           const habit = habits.find((candidate) => candidate.id === element.sourceHabitId)
           if (!habit) return null
-          const stage = getHabitStage(habit.id, checkIns)
           const color = habit.colorToken
           const style = { "--building": `var(--city-${color})` } as CSSProperties
           const select = () => onSelectHabit?.(habit)

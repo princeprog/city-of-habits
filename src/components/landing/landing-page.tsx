@@ -5,7 +5,7 @@ import { CityLogo } from "@/components/city/city-logo"
 import { CityMap } from "@/components/city/city-map"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { sampleCheckIns, sampleHabits } from "@/lib/city/catalog"
 

@@ -8,7 +8,6 @@ import { toast } from "sonner"
 
 import { BuildingIllustration } from "@/components/city/building-illustration"
 import { CityMap } from "@/components/city/city-map"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"

@@ -11,6 +11,7 @@ const withSerwist = withSerwistInit({
 const nextConfig = {
   output: 'export',
   trailingSlash: true,
+  turbopack: {},
   images: {
     unoptimized: true,
   },

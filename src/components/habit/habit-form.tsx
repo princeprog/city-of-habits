@@ -3,10 +3,10 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { Controller, useForm } from "react-hook-form"
+import { Controller, useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, ArrowRight, Check, Palette, Sparkles } from "lucide-react"
+import { ArrowLeft, ArrowRight, Palette, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
 import { BuildingIllustration } from "@/components/city/building-illustration"
@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { buildingCatalog, colorTokens, districtCatalog } from "@/lib/city/catalog"
 import { useCityStore } from "@/stores/city-store"
-import type { BuildingType, DistrictId } from "@/types/city"
+import type { BuildingType } from "@/types/city"
 
 const formSchema = z.object({
   name: z.string().trim().min(2, "Give the habit a name.").max(80, "Keep the name under 80 characters."),
@@ -54,10 +54,11 @@ export function HabitForm() {
       intention: "",
     },
   })
-  const district = form.watch("district")
-  const buildingType = form.watch("buildingType")
-  const colorToken = form.watch("colorToken")
-  const target = form.watch("targetPerWeek")
+  const district = useWatch({ control: form.control, name: "district" })
+  const buildingType = useWatch({ control: form.control, name: "buildingType" })
+  const colorToken = useWatch({ control: form.control, name: "colorToken" })
+  const target = useWatch({ control: form.control, name: "targetPerWeek" })
+  const name = useWatch({ control: form.control, name: "name" })
 
   async function onSubmit(values: HabitFormValues) {
     setIsSaving(true)
@@ -142,7 +143,7 @@ export function HabitForm() {
         </Card>
 
         <Card className="sticky top-20 overflow-hidden bg-primary text-primary-foreground shadow-none">
-          <CardHeader><p className="font-label text-[0.58rem] opacity-70">A glimpse of the future</p><CardTitle className="font-editorial text-3xl">{form.watch("name") || "Your next building"}</CardTitle><CardDescription className="text-primary-foreground/75">{districtCatalog[district].name} district · {buildingCatalog[buildingType].name}</CardDescription></CardHeader>
+          <CardHeader><p className="font-label text-[0.58rem] opacity-70">A glimpse of the future</p><CardTitle className="font-editorial text-3xl">{name || "Your next building"}</CardTitle><CardDescription className="text-primary-foreground/75">{districtCatalog[district].name} district · {buildingCatalog[buildingType].name}</CardDescription></CardHeader>
           <CardContent><div className="flex min-h-48 items-center justify-center rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5"><BuildingIllustration type={buildingType} stage={2} color={colorToken} size={132} /></div><div className="mt-5 flex items-center justify-between text-xs text-primary-foreground/70"><span>First stage</span><span className="font-mono">0 check-ins</span></div><div className="mt-2 grid grid-cols-3 gap-1"><div className="h-1.5 rounded-full bg-primary-foreground/80" /><div className="h-1.5 rounded-full bg-primary-foreground/20" /><div className="h-1.5 rounded-full bg-primary-foreground/20" /></div></CardContent>
         </Card>
       </div>

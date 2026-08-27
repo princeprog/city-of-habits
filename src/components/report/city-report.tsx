@@ -64,6 +64,8 @@ export function CityReport() {
   const reflection = reflections.find((item) => item.scopeKey === `city:${period}`)
 
   useEffect(() => {
+    // This synchronizes the editor with the persisted reflection selected by the tab.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setReflectionText(reflection?.body ?? "")
   }, [period, reflection?.body])
 

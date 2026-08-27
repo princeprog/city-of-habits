@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useMemo, useState } from "react"
 import { ArrowLeft, ArrowUpRight, CalendarDays, Check, CloudRain, Pause, Play, RotateCcw, Sparkles, Trash2 } from "lucide-react"
 import { toast } from "sonner"
@@ -34,7 +34,6 @@ export function HabitDetailPage() {
 
 function HabitDetail() {
   const params = useSearchParams()
-  const router = useRouter()
   const id = params.get("id")
   const { habits, checkIns, reflections, hydrated, hydrate, toggleCheckIn, updateHabit, saveReflection } = useCityStore()
   const [reflectionText, setReflectionText] = useState("")
@@ -54,6 +53,8 @@ function HabitDetail() {
   const completedDates = habitCheckIns.map((checkIn) => new Date(`${checkIn.localDate}T12:00:00`))
 
   useEffect(() => {
+    // This synchronizes the editor with the persisted reflection selected by the URL.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setReflectionText(reflection?.body ?? "")
   }, [reflection?.body])
 
