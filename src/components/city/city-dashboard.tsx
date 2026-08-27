@@ -11,7 +11,7 @@ import { CityMap } from "@/components/city/city-map"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants, Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia } from "@/components/ui/empty"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -61,7 +61,7 @@ export function CityDashboard() {
         <Empty className="max-w-xl">
           <EmptyHeader>
             <EmptyMedia variant="icon"><BuildingIllustration type="library" stage={0} color="sky" size={38} /></EmptyMedia>
-            <h1 className="font-heading text-sm font-medium tracking-tight">Your city is a clear plot.</h1>
+          <EmptyTitle><h1>Your city is a clear plot.</h1></EmptyTitle>
             <EmptyDescription>Give one repeated action a place to live. You can always start small, change the weather, and return later.</EmptyDescription>
           </EmptyHeader>
           <EmptyContent className="flex-row justify-center">
@@ -89,8 +89,8 @@ export function CityDashboard() {
         </header>
 
         <div className="mt-7 grid gap-3 sm:grid-cols-3">
-          <Card size="sm"><CardHeader><CardDescription>Buildings</CardDescription><CardTitle className="text-2xl">{habits.length}</CardTitle></CardHeader><CardContent><BuildingIllustration type="tower" stage={3} color="blue" size={38} /></CardContent></Card>
-          <Card size="sm"><CardHeader><CardDescription>Today</CardDescription><CardTitle className="text-2xl">{todayCount}<span className="ml-1 text-sm font-normal text-muted-foreground">check-ins</span></CardTitle></CardHeader><CardContent><Check aria-hidden="true" /></CardContent></Card>
+          <Card size="sm"><CardHeader><CardDescription>Buildings</CardDescription><CardTitle>{habits.length}</CardTitle></CardHeader><CardContent><BuildingIllustration type="tower" stage={3} color="blue" size={38} /></CardContent></Card>
+          <Card size="sm"><CardHeader><CardDescription>Today</CardDescription><CardTitle>{todayCount}<span className="ml-1">check-ins</span></CardTitle></CardHeader><CardContent><Check aria-hidden="true" /></CardContent></Card>
           <Card size="sm"><CardHeader><div className="flex items-center justify-between gap-4"><CardDescription>This week</CardDescription><span className="text-xs text-muted-foreground">{weeklyProgress}/{weeklyTarget || 0}</span></div><Progress value={progressValue} aria-label={`${progressValue}% of weekly target`} /></CardHeader><CardContent><p className="text-xs text-muted-foreground">Keep the rhythm flexible.</p></CardContent></Card>
         </div>
 

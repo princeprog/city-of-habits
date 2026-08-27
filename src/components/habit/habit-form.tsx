@@ -159,7 +159,7 @@ export function HabitForm() {
         <Card className="sticky top-20">
           <CardHeader>
             <CardDescription>A glimpse of the future</CardDescription>
-            <CardTitle className="text-3xl">{name || "Your next building"}</CardTitle>
+            <CardTitle>{name || "Your next building"}</CardTitle>
             <CardDescription>{districtCatalog[district].name} district · {buildingCatalog[buildingType].name}</CardDescription>
           </CardHeader>
           <CardContent>

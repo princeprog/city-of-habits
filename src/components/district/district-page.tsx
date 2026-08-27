@@ -88,9 +88,9 @@ function DistrictView() {
             <p className="mt-3 max-w-xl text-sm text-muted-foreground">{description}</p>
           </div>
           <div className="grid grid-cols-3 gap-3 sm:min-w-[24rem]">
-            <Card size="sm"><CardHeader><CardDescription>Buildings</CardDescription><CardTitle className="text-2xl">{visibleHabits.length}</CardTitle></CardHeader></Card>
-            <Card size="sm"><CardHeader><CardDescription>Check-ins</CardDescription><CardTitle className="text-2xl">{totalCheckIns}</CardTitle></CardHeader></Card>
-            <Card size="sm"><CardHeader><CardDescription>Landmarks</CardDescription><CardTitle className="text-2xl">{landmarkCount}</CardTitle></CardHeader></Card>
+            <Card size="sm"><CardHeader><CardDescription>Buildings</CardDescription><CardTitle>{visibleHabits.length}</CardTitle></CardHeader></Card>
+            <Card size="sm"><CardHeader><CardDescription>Check-ins</CardDescription><CardTitle>{totalCheckIns}</CardTitle></CardHeader></Card>
+            <Card size="sm"><CardHeader><CardDescription>Landmarks</CardDescription><CardTitle>{landmarkCount}</CardTitle></CardHeader></Card>
           </div>
         </header>
 

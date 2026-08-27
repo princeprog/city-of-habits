@@ -66,7 +66,7 @@ export function LandingPage() {
               <Card className="absolute -bottom-5 left-4 max-w-xs">
                 <CardHeader>
                   <CardDescription>Tonight in the city</CardDescription>
-                  <CardTitle className="text-base">The library has a new warm window.</CardTitle>
+                  <CardTitle>The library has a new warm window.</CardTitle>
                 </CardHeader>
               </Card>
             </div>
