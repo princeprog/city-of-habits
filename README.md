@@ -70,7 +70,7 @@ The production build uses `next build --webpack` because the selected Serwist in
 1. Import `princeprog/city-of-habits` into Vercel.
 2. Keep `main` as the Production Branch.
 3. Use the repository’s pnpm lockfile, Node `24.x`, and the build command `pnpm build`.
-4. Set `NEXT_PUBLIC_SITE_URL` to the assigned production URL (for example, `https://city-of-habits.vercel.app`) in Preview and Production environments.
+4. Set `NEXT_PUBLIC_SITE_URL` to the assigned production URL (`https://cityofhabits.vercel.app`) in Preview and Production environments.
 5. Push feature branches for previews; merge or fast-forward `main` for production.
 
 `NEXT_PUBLIC_SITE_URL` is read at build time for canonical metadata, Open Graph URLs, JSON-LD, robots, and sitemap output. The app remains fully usable if it is not set because a Vercel fallback URL is provided.

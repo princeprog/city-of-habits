@@ -7,7 +7,7 @@ import { Inter } from "next/font/google"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://city-of-habits.vercel.app"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cityofhabits.vercel.app"
 const siteDescription = "A living map of your daily life. Turn recurring actions into buildings, streets, parks, and neighborhoods in a private personal city."
 
 export const metadata: Metadata = {
