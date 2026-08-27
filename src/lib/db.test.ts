@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest"
 
-import { clearCity, cityDb, createHabit, readCitySnapshot, replaceCity, toggleCheckIn } from "@/lib/db"
+import { clearCity, cityDb, createHabit, normalizeThemeMode, readCitySnapshot, replaceCity, toggleCheckIn } from "@/lib/db"
 
 describe("local city persistence", () => {
   beforeEach(async () => {
@@ -28,5 +28,13 @@ describe("local city persistence", () => {
 
   it("declares the compound check-in index", () => {
     expect(cityDb.checkIns.schema.indexes.some((index) => index.name === "[habitId+localDate]")).toBe(true)
+  })
+
+  it("migrates legacy and unsupported preference themes", () => {
+    expect(normalizeThemeMode("paper")).toBe("light")
+    expect(normalizeThemeMode("night")).toBe("dark")
+    expect(normalizeThemeMode("system")).toBe("system")
+    expect(normalizeThemeMode("unexpected")).toBe("system")
+    expect(normalizeThemeMode(undefined)).toBe("system")
   })
 })

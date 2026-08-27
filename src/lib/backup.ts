@@ -1,5 +1,6 @@
 import { z } from "zod"
 
+import { normalizeThemeMode } from "@/lib/db"
 import type { CityBackupV1, CityBackupV2, CityPreferences, CitySnapshot } from "@/types/city"
 
 const positionSchema = z.object({ x: z.number(), y: z.number() })
@@ -71,17 +72,13 @@ export const cityBackupSchema = z.object({
   preferences: preferencesSchema,
 })
 
-function migrateTheme(theme: "paper" | "night"): "light" | "dark" {
-  return theme === "night" ? "dark" : "light"
-}
-
 export function migrateBackupV1(backup: CityBackupV1): CityBackupV2 {
   return {
     ...backup,
     schemaVersion: 2,
     preferences: {
       ...backup.preferences,
-      theme: migrateTheme(backup.preferences.theme),
+      theme: normalizeThemeMode(backup.preferences.theme),
     },
   }
 }
@@ -124,12 +121,5 @@ export function getBackupSummary(backup: CityBackupV1 | CityBackupV2) {
 }
 
 export function normalizePreferences(preferences: Omit<Partial<CityPreferences>, "theme"> & { theme?: string }): CityPreferences {
-  const theme = preferences.theme === "paper"
-    ? "light"
-    : preferences.theme === "night"
-      ? "dark"
-      : preferences.theme === "light" || preferences.theme === "dark" || preferences.theme === "system"
-        ? preferences.theme
-        : "system"
-  return { ...preferences, theme } as CityPreferences
+  return { ...preferences, theme: normalizeThemeMode(preferences.theme) } as CityPreferences
 }

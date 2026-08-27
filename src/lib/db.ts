@@ -6,8 +6,15 @@ import type {
   CityPreferences,
   CitySnapshot,
   Habit,
+  ThemeMode,
   Reflection,
 } from "@/types/city"
+
+export function normalizeThemeMode(theme: unknown): ThemeMode {
+  if (theme === "paper" || theme === "light") return "light"
+  if (theme === "night" || theme === "dark") return "dark"
+  return "system"
+}
 
 export class CityDatabase extends Dexie {
   habits!: Table<Habit, string>
@@ -36,14 +43,10 @@ export class CityDatabase extends Dexie {
           | undefined
         if (!preferences) return
 
-        const theme = preferences.theme === "paper"
-          ? "light"
-          : preferences.theme === "night"
-            ? "dark"
-            : preferences.theme === "light" || preferences.theme === "dark" || preferences.theme === "system"
-              ? preferences.theme
-              : "system"
-        await transaction.table("preferences").put({ ...preferences, theme })
+        await transaction.table("preferences").put({
+          ...preferences,
+          theme: normalizeThemeMode(preferences.theme),
+        })
       })
   }
 }
