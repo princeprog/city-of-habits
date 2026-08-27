@@ -22,7 +22,8 @@ export type BuildingType = (typeof BUILDING_TYPES)[number]
 export type HabitStatus = "active" | "paused" | "archived"
 export type GrowthStage = "planned" | "started" | "growing" | "established"
 export type Mood = "low" | "steady" | "good" | "energized"
-export type ThemeMode = "paper" | "night"
+export type ThemeMode = "light" | "dark" | "system"
+export type LegacyThemeMode = "paper" | "night"
 export type MotionMode = "system" | "reduced" | "full"
 
 export interface CityPosition {
@@ -93,8 +94,19 @@ export interface CitySnapshot {
   preferences: CityPreferences
 }
 
-export interface CityBackupV1 extends CitySnapshot {
+export interface CityPreferencesV1 extends Omit<CityPreferences, "theme"> {
+  theme: LegacyThemeMode
+}
+
+export interface CityBackupV1 extends Omit<CitySnapshot, "preferences"> {
   schemaVersion: 1
+  exportedAt: string
+  appVersion: string
+  preferences: CityPreferencesV1
+}
+
+export interface CityBackupV2 extends CitySnapshot {
+  schemaVersion: 2
   exportedAt: string
   appVersion: string
 }

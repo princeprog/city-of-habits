@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import type { CityBackupV1, CitySnapshot } from "@/types/city"
+import type { CityBackupV1, CityBackupV2, CityPreferences, CitySnapshot } from "@/types/city"
 
 const positionSchema = z.object({ x: z.number(), y: z.number() })
 const habitSchema = z.object({
@@ -35,52 +35,101 @@ const reflectionSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
 })
-const preferencesSchema = z.object({
+const preferenceFields = {
   id: z.literal("default"),
-  theme: z.enum(["paper", "night"]),
   quietMode: z.boolean(),
   soundEnabled: z.boolean(),
   motion: z.enum(["system", "reduced", "full"]),
   hasSeenWelcome: z.boolean(),
   updatedAt: z.string(),
+}
+const legacyPreferencesSchema = z.object({
+  ...preferenceFields,
+  theme: z.enum(["paper", "night"]),
 })
-
-export const cityBackupSchema = z.object({
-  schemaVersion: z.literal(1),
+const preferencesSchema = z.object({
+  ...preferenceFields,
+  theme: z.enum(["light", "dark", "system"]),
+})
+const backupFields = {
   exportedAt: z.string(),
   appVersion: z.string(),
   habits: z.array(habitSchema),
   checkIns: z.array(checkInSchema),
   reflections: z.array(reflectionSchema),
+}
+
+export const cityBackupV1Schema = z.object({
+  ...backupFields,
+  schemaVersion: z.literal(1),
+  preferences: legacyPreferencesSchema,
+})
+
+export const cityBackupSchema = z.object({
+  ...backupFields,
+  schemaVersion: z.literal(2),
   preferences: preferencesSchema,
 })
 
-export function createBackup(snapshot: CitySnapshot, appVersion: string): CityBackupV1 {
+function migrateTheme(theme: "paper" | "night"): "light" | "dark" {
+  return theme === "night" ? "dark" : "light"
+}
+
+export function migrateBackupV1(backup: CityBackupV1): CityBackupV2 {
+  return {
+    ...backup,
+    schemaVersion: 2,
+    preferences: {
+      ...backup.preferences,
+      theme: migrateTheme(backup.preferences.theme),
+    },
+  }
+}
+
+export function createBackup(snapshot: CitySnapshot, appVersion: string): CityBackupV2 {
   return {
     ...snapshot,
-    schemaVersion: 1,
+    schemaVersion: 2,
     exportedAt: new Date().toISOString(),
     appVersion,
   }
 }
 
-export function serializeBackup(backup: CityBackupV1) {
+export function serializeBackup(backup: CityBackupV2) {
   return JSON.stringify(backup, null, 2)
 }
 
-export function parseBackup(value: unknown) {
-  return cityBackupSchema.parse(value)
+export function parseBackup(value: unknown): CityBackupV2 {
+  const schemaVersion = z.object({ schemaVersion: z.number() }).parse(value).schemaVersion
+  if (schemaVersion === 1) {
+    return migrateBackupV1(cityBackupV1Schema.parse(value))
+  }
+  if (schemaVersion === 2) {
+    return cityBackupSchema.parse(value)
+  }
+  throw new Error(`Unsupported City of Habits backup schema: ${schemaVersion}`)
 }
 
 export function parseBackupText(text: string) {
   return parseBackup(JSON.parse(text))
 }
 
-export function getBackupSummary(backup: CityBackupV1) {
+export function getBackupSummary(backup: CityBackupV1 | CityBackupV2) {
   return {
     habits: backup.habits.length,
     checkIns: backup.checkIns.length,
     reflections: backup.reflections.length,
     exportedAt: backup.exportedAt,
   }
+}
+
+export function normalizePreferences(preferences: Omit<Partial<CityPreferences>, "theme"> & { theme?: string }): CityPreferences {
+  const theme = preferences.theme === "paper"
+    ? "light"
+    : preferences.theme === "night"
+      ? "dark"
+      : preferences.theme === "light" || preferences.theme === "dark" || preferences.theme === "system"
+        ? preferences.theme
+        : "system"
+  return { ...preferences, theme } as CityPreferences
 }

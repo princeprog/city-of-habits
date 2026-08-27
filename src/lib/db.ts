@@ -23,6 +23,28 @@ export class CityDatabase extends Dexie {
       reflections: "&id, scopeKey, periodStart, createdAt",
       preferences: "&id",
     })
+    this.version(2)
+      .stores({
+        habits: "&id, district, status, createdAt, updatedAt",
+        checkIns: "&id, [habitId+localDate], habitId, localDate, completedAt",
+        reflections: "&id, scopeKey, periodStart, createdAt",
+        preferences: "&id",
+      })
+      .upgrade(async (transaction) => {
+        const preferences = await transaction.table("preferences").get("default") as
+          | (Omit<CityPreferences, "theme"> & { theme?: string })
+          | undefined
+        if (!preferences) return
+
+        const theme = preferences.theme === "paper"
+          ? "light"
+          : preferences.theme === "night"
+            ? "dark"
+            : preferences.theme === "light" || preferences.theme === "dark" || preferences.theme === "system"
+              ? preferences.theme
+              : "system"
+        await transaction.table("preferences").put({ ...preferences, theme })
+      })
   }
 }
 
@@ -30,7 +52,7 @@ export const cityDb = new CityDatabase()
 
 export const defaultPreferences = (): CityPreferences => ({
   id: "default",
-  theme: "paper",
+  theme: "system",
   quietMode: false,
   soundEnabled: false,
   motion: "system",
