@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "A private, local-first habit tracker that turns repeated actions into a living personal city.",
     start_url: "/city/",
     display: "standalone",
-    background_color: "#f5f0e8",
-    theme_color: "#193238",
+    background_color: "#ffffff",
+    theme_color: "#171717",
     orientation: "portrait-primary",
     icons: [
       { src: "/icons/city-192.svg", sizes: "192x192", type: "image/svg+xml", purpose: "any" },

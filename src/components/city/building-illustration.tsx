@@ -11,6 +11,19 @@ interface BuildingIllustrationProps {
   label?: string
 }
 
+const colorVariables: Record<string, string> = {
+  coral: "var(--chart-1)",
+  teal: "var(--chart-2)",
+  gold: "var(--chart-3)",
+  sky: "var(--chart-4)",
+  moss: "var(--chart-5)",
+  blue: "var(--primary)",
+}
+
+function getColorVariable(color: string) {
+  return colorVariables[color] ?? "var(--primary)"
+}
+
 function Window({ x, y, lit }: { x: number; y: number; lit: boolean }) {
   return (
     <rect
@@ -54,7 +67,7 @@ export function BuildingIllustration({
 }: BuildingIllustrationProps) {
   const opacity = status === "archived" ? 0.55 : status === "paused" ? 0.7 : 1
   const common = {
-    "--building": `var(--city-${color})`,
+    "--building": getColorVariable(color),
     "--building-shadow": "color-mix(in srgb, var(--building) 45%, var(--foreground))",
     "--building-light": "color-mix(in srgb, var(--building) 35%, var(--primary-foreground))",
   } as CSSProperties

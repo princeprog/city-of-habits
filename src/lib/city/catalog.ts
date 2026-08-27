@@ -16,7 +16,7 @@ export const districtCatalog: Record<
     shortName: "Body",
     description: "Movement, nutrition, health, and physical care.",
     building: "park",
-    token: "--district-body",
+    token: "--chart-5",
     icon: "✦",
   },
   mind: {
@@ -24,7 +24,7 @@ export const districtCatalog: Record<
     shortName: "Mind",
     description: "Learning, reading, focus, and reflection.",
     building: "library",
-    token: "--district-mind",
+    token: "--chart-4",
     icon: "◇",
   },
   creative: {
@@ -32,7 +32,7 @@ export const districtCatalog: Record<
     shortName: "Create",
     description: "Making, drawing, coding, music, and experiments.",
     building: "workshop",
-    token: "--district-creative",
+    token: "--chart-1",
     icon: "✳",
   },
   connection: {
@@ -40,7 +40,7 @@ export const districtCatalog: Record<
     shortName: "Connect",
     description: "Friends, family, communication, and community.",
     building: "bridge",
-    token: "--district-connection",
+    token: "--chart-2",
     icon: "⌁",
   },
   work: {
@@ -48,7 +48,7 @@ export const districtCatalog: Record<
     shortName: "Work",
     description: "Professional practice, planning, and deep work.",
     building: "tower",
-    token: "--district-work",
+    token: "--primary",
     icon: "▥",
   },
   recovery: {
@@ -56,7 +56,7 @@ export const districtCatalog: Record<
     shortName: "Recover",
     description: "Sleep, rest, quiet, and emotional reset.",
     building: "lighthouse",
-    token: "--district-recovery",
+    token: "--chart-3",
     icon: "○",
   },
 }

@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Progress } from "@/components/ui/progress"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -164,7 +165,7 @@ export function HabitForm() {
           <CardContent>
             <div className="flex min-h-48 items-center justify-center"><BuildingIllustration type={buildingType} stage={2} color={colorToken} size={132} /></div>
             <div className="mt-5 flex items-center justify-between text-sm text-muted-foreground"><span>First stage</span><span>0 check-ins</span></div>
-            <div className="mt-2 grid grid-cols-3 gap-1" aria-hidden="true"><div className="h-1.5 bg-primary" /><div className="h-1.5 bg-muted" /><div className="h-1.5 bg-muted" /></div>
+            <Progress value={33} aria-label="First stage progress" className="mt-2" />
           </CardContent>
         </Card>
       </div>
