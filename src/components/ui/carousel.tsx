@@ -5,8 +5,8 @@ import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react"
 
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 
 type CarouselApi = UseEmblaCarouselType[1]
@@ -95,8 +95,6 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
-    // The callback intentionally synchronizes an external carousel instance.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     onSelect(api)
     api.on("reInit", onSelect)
     api.on("select", onSelect)
@@ -197,7 +195,7 @@ function CarouselPrevious({
       onClick={scrollPrev}
       {...props}
     >
-      <ChevronLeftIcon className="cn-rtl-flip" />
+      <ChevronLeftIcon />
       <span className="sr-only">Previous slide</span>
     </Button>
   )
@@ -227,7 +225,7 @@ function CarouselNext({
       onClick={scrollNext}
       {...props}
     >
-      <ChevronRightIcon className="cn-rtl-flip" />
+      <ChevronRightIcon />
       <span className="sr-only">Next slide</span>
     </Button>
   )

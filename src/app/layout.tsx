@@ -3,6 +3,9 @@ import type { Metadata, Viewport } from "next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
+import { Inter } from "next/font/google"
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://city-of-habits.vercel.app"
 const siteDescription = "A living map of your daily life. Turn recurring actions into buildings, streets, parks, and neighborhoods in a private personal city."
@@ -49,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body>
         <ThemeProvider>{children}<Toaster /></ThemeProvider>
       </body>

@@ -6,7 +6,7 @@
 
 @theme inline {
   --font-sans: var(--font-sans);
-  --font-heading: var(--font-serif);
+  --font-heading: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
   --color-background: var(--background);
@@ -24,6 +24,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -51,98 +52,76 @@
 
 :root {
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
-  --font-serif: Georgia, "Times New Roman", serif;
-  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --background: #f5f0e8;
-  --foreground: #1b292d;
-  --card: #fffdf8;
-  --card-foreground: #1b292d;
-  --popover: #fffdf8;
-  --popover-foreground: #1b292d;
-  --primary: #193238;
-  --primary-foreground: #f7f2e9;
-  --secondary: #e4ece9;
-  --secondary-foreground: #193238;
-  --muted: #e9e9e2;
-  --muted-foreground: #536568;
-  --accent: #dbeae7;
-  --accent-foreground: #193238;
-  --destructive: #b95849;
-  --border: #ccd6d1;
-  --input: #c1cec9;
-  --ring: #3f8c85;
-  --chart-1: #d2755d;
-  --chart-2: #3f8c85;
-  --chart-3: #c5a056;
-  --chart-4: #7ab6c8;
-  --chart-5: #7a9677;
-  --radius: 0.8rem;
-  --sidebar: #ebeae2;
-  --sidebar-foreground: #1b292d;
-  --sidebar-primary: #193238;
-  --sidebar-primary-foreground: #f7f2e9;
-  --sidebar-accent: #dbeae7;
-  --sidebar-accent-foreground: #193238;
-  --sidebar-border: #ccd6d1;
-  --sidebar-ring: #3f8c85;
-  --district-body: #7a9677;
-  --district-mind: #7ab6c8;
-  --district-creative: #d2755d;
-  --district-connection: #3f8c85;
-  --district-work: #5d78b1;
-  --district-recovery: #c5a056;
-  --city-coral: #d2755d;
-  --city-teal: #3f8c85;
-  --city-gold: #c5a056;
-  --city-sky: #7ab6c8;
-  --city-moss: #7a9677;
-  --city-blue: #5d78b1;
-  --map-grid: rgba(25, 50, 56, 0.08);
-  --map-road: rgba(25, 50, 56, 0.18);
-  --map-water: rgba(122, 182, 200, 0.22);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
-  --background: #0e2025;
-  --foreground: #f7f2e9;
-  --card: #142d32;
-  --card-foreground: #f7f2e9;
-  --popover: #142d32;
-  --popover-foreground: #f7f2e9;
-  --primary: #e7c98b;
-  --primary-foreground: #193238;
-  --secondary: #1c3a40;
-  --secondary-foreground: #f7f2e9;
-  --muted: #193238;
-  --muted-foreground: #aab9b7;
-  --accent: #24474a;
-  --accent-foreground: #f7f2e9;
-  --destructive: #e08370;
-  --border: rgba(247, 242, 233, 0.16);
-  --input: rgba(247, 242, 233, 0.22);
-  --ring: #78bcb4;
-  --chart-1: #e08370;
-  --chart-2: #78bcb4;
-  --chart-3: #e7c98b;
-  --chart-4: #83bfd2;
-  --chart-5: #9ab58d;
-  --sidebar: #11272c;
-  --sidebar-foreground: #f7f2e9;
-  --sidebar-primary: #e7c98b;
-  --sidebar-primary-foreground: #193238;
-  --sidebar-accent: #1c3a40;
-  --sidebar-accent-foreground: #f7f2e9;
-  --sidebar-border: rgba(247, 242, 233, 0.16);
-  --sidebar-ring: #78bcb4;
-  --city-coral: #e08370;
-  --city-teal: #78bcb4;
-  --city-gold: #e7c98b;
-  --city-sky: #83bfd2;
-  --city-moss: #9ab58d;
-  --city-blue: #829bd0;
-  --map-grid: rgba(247, 242, 233, 0.08);
-  --map-road: rgba(247, 242, 233, 0.2);
-  --map-water: rgba(120, 188, 180, 0.2);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
@@ -151,44 +130,10 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    @apply font-sans;
   }
 
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
-    font-family: var(--font-sans);
-  }
-
-  ::selection {
-    background: var(--accent);
-    color: var(--accent-foreground);
-  }
-}
-
-@layer utilities {
-  .font-editorial {
-    font-family: var(--font-serif);
-  }
-
-  .font-label {
-    font-family: var(--font-mono);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .paper-grain {
-    background-image: radial-gradient(var(--map-grid) 0.65px, transparent 0.65px);
-    background-size: 7px 7px;
-  }
-
-  .city-grid {
-    background-image:
-      linear-gradient(to right, var(--map-grid) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--map-grid) 1px, transparent 1px);
-    background-size: 32px 32px;
-  }
-
-  .text-balance {
-    text-wrap: balance;
   }
 }
