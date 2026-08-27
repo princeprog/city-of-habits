@@ -41,13 +41,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" variant="sidebar">
-        <SidebarHeader className="p-3">
+        <SidebarHeader>
           <CityLogo compact />
         </SidebarHeader>
         <SidebarSeparator />
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel className="font-label text-[0.58rem]">Navigate</SidebarGroupLabel>
+            <SidebarGroupLabel>Navigate</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {mainLinks.map((item) => (
@@ -66,7 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </SidebarGroupContent>
           </SidebarGroup>
           <SidebarGroup>
-            <SidebarGroupLabel className="font-label text-[0.58rem]">Explore</SidebarGroupLabel>
+            <SidebarGroupLabel>Explore</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {exploreLinks.map((item) => (
@@ -85,13 +85,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter className="p-3">
-          <p className="font-label text-[0.52rem] leading-relaxed text-muted-foreground group-data-[collapsible=icon]:hidden">A private city for the life you are building.</p>
+        <SidebarFooter>
+          <p className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">A private city for the life you are building.</p>
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background/85 px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4 sm:px-6">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-5" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
