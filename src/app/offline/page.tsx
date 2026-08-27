@@ -4,7 +4,7 @@ import { CloudOff, RotateCcw } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { buttonVariants } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
@@ -19,7 +19,7 @@ export default function OfflinePage() {
       <Card className="w-full max-w-lg">
         <CardHeader>
           <CardDescription>A quiet connection</CardDescription>
-          <CardTitle className="text-3xl">The network took a little walk.</CardTitle>
+          <h1 className="text-3xl font-semibold tracking-tight">The network took a little walk.</h1>
           <CardDescription>Your city is local-first, so your saved habits and check-ins remain on this device. Reconnect when you want to load a new page.</CardDescription>
         </CardHeader>
         <CardContent>

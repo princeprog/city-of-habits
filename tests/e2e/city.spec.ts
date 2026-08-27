@@ -14,8 +14,8 @@ test.beforeEach(async ({ page }) => {
 })
 
 test("creates a foundation and checks in from its detail page", async ({ page }) => {
-  await page.getByRole("button", { name: /enter the city/i }).first().click()
-  await page.getByRole("button", { name: /build your first foundation/i }).click()
+  await page.getByRole("link", { name: /enter the city/i }).first().click()
+  await page.getByRole("link", { name: /build your first foundation/i }).click()
   await page.getByLabel("What do you want to repeat?").fill("Read before bed")
   await page.getByRole("button", { name: /place the foundation/i }).click()
   await expect(page).toHaveURL(/\/habit\/?\?id=/)

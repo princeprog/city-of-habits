@@ -11,7 +11,7 @@ import { CityMap } from "@/components/city/city-map"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants, Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia } from "@/components/ui/empty"
 import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -61,7 +61,7 @@ export function CityDashboard() {
         <Empty className="max-w-xl">
           <EmptyHeader>
             <EmptyMedia variant="icon"><BuildingIllustration type="library" stage={0} color="sky" size={38} /></EmptyMedia>
-            <EmptyTitle>Your city is a clear plot.</EmptyTitle>
+            <h1 className="font-heading text-sm font-medium tracking-tight">Your city is a clear plot.</h1>
             <EmptyDescription>Give one repeated action a place to live. You can always start small, change the weather, and return later.</EmptyDescription>
           </EmptyHeader>
           <EmptyContent className="flex-row justify-center">

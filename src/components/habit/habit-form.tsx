@@ -85,7 +85,7 @@ export function HabitForm() {
             <div className="mt-4 flex items-start justify-between gap-4">
               <div>
                 <CardDescription>Build a foundation</CardDescription>
-                <CardTitle className="mt-2 text-4xl">Give a habit a place to live.</CardTitle>
+                <h1 className="mt-2 text-4xl font-semibold tracking-tight">Give a habit a place to live.</h1>
                 <CardDescription className="mt-3 max-w-xl">Name one repeated action. The city will take care of the rest, one small detail at a time.</CardDescription>
               </div>
               <Badge variant="outline" className="hidden gap-2 sm:flex"><Sparkles />2 min setup</Badge>
