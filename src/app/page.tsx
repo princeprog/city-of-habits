@@ -16,7 +16,7 @@ export default function Page() {
     applicationCategory: "ProductivityApplication",
     operatingSystem: "Web",
     description: "A private, local-first habit tracker that turns repeated actions into a living personal city.",
-    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://city-of-habits-alprinces-projects.vercel.app",
+    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://city-of-habits.vercel.app",
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   }
 
