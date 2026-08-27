@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
-import type { TooltipValueType } from "recharts"
+import type { ValueType } from "recharts/types/component/DefaultTooltipContent"
 
 import { cn } from '@/lib/utils'
 
@@ -139,7 +139,7 @@ function ChartTooltipContent({
     labelKey?: string
   } & Omit<
     RechartsPrimitive.DefaultTooltipContentProps<
-      TooltipValueType,
+      ValueType,
       TooltipNameType
     >,
     "accessibilityLayer"
