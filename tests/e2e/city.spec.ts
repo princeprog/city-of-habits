@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import AxeBuilder from "@axe-core/playwright"
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/")
@@ -27,4 +28,13 @@ test("keeps the landing page crawlable and explains the privacy promise", async 
   await expect(page).toHaveTitle(/City of Habits/i)
   await expect(page.getByRole("heading", { name: /see the life you are building/i })).toBeVisible()
   await expect(page.getByText(/no account · works offline · export anytime/i)).toBeVisible()
+})
+
+test("renders every public route without serious accessibility violations", async ({ page }) => {
+  for (const route of ["/city", "/habit/new", "/habit?id=missing", "/district?id=body", "/report", "/settings", "/offline"]) {
+    await page.goto(route)
+    await expect(page.locator("h1").first()).toBeVisible()
+    const results = await new AxeBuilder({ page }).analyze()
+    expect(results.violations.filter((violation) => violation.impact === "serious" || violation.impact === "critical"), `${route} has serious accessibility issues`).toEqual([])
+  }
 })

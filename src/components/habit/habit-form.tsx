@@ -79,7 +79,7 @@ export function HabitForm() {
           <CardHeader className="border-b">
             <Button variant="ghost" size="sm" className="-ml-2 w-fit" render={<Link href="/city" />} nativeButton={false}><ArrowLeft data-icon="inline-start" />Back to the city</Button>
             <div className="mt-4 flex items-start justify-between gap-4">
-              <div><p className="font-label text-[0.6rem] text-primary">Build a foundation</p><CardTitle className="font-editorial mt-2 text-4xl tracking-[-0.04em]">Give a habit a place to live.</CardTitle><CardDescription className="mt-3 max-w-xl text-base leading-relaxed">Name one repeated action. The city will take care of the rest, one small detail at a time.</CardDescription></div>
+              <div><p className="font-label text-[0.6rem] text-primary">Build a foundation</p><h1 className="font-editorial mt-2 text-4xl tracking-[-0.04em]">Give a habit a place to live.</h1><CardDescription className="mt-3 max-w-xl text-base leading-relaxed">Name one repeated action. The city will take care of the rest, one small detail at a time.</CardDescription></div>
               <Badge variant="outline" className="hidden gap-2 rounded-full sm:flex"><Sparkles />2 min setup</Badge>
             </div>
           </CardHeader>

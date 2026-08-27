@@ -60,7 +60,7 @@ function HabitDetail() {
 
   if (!hydrated) return <HabitDetailSkeleton />
   if (!habit) {
-    return <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center p-6"><Card className="max-w-md"><CardHeader><CardTitle className="font-editorial text-3xl">That building is not on this map.</CardTitle><CardDescription>It may have been removed, or this link may be out of date.</CardDescription></CardHeader><CardFooter><Button render={<Link href="/city" />} nativeButton={false}><ArrowLeft data-icon="inline-start" />Back to the city</Button></CardFooter></Card></div>
+    return <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center p-6"><Card className="max-w-md"><CardHeader><h1 className="font-editorial text-3xl">That building is not on this map.</h1><CardDescription>It may have been removed, or this link may be out of date.</CardDescription></CardHeader><CardFooter><Button render={<Link href="/city" />} nativeButton={false}><ArrowLeft data-icon="inline-start" />Back to the city</Button></CardFooter></Card></div>
   }
 
   const habitId = habit.id

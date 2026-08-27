@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
@@ -80,7 +80,7 @@ export function CityReport() {
   if (!hydrated) return <ReportSkeleton />
 
   if (!habits.length) {
-    return <div className="paper-grain flex min-h-[calc(100vh-3.5rem)] items-center justify-center p-5 sm:p-8"><Empty className="max-w-lg border bg-card/70"><EmptyHeader><EmptyMedia variant="icon"><CalendarDays /></EmptyMedia><EmptyTitle className="font-editorial text-3xl">Your first report is waiting.</EmptyTitle><EmptyDescription>Create a habit and the city will begin keeping a private record of its rhythm.</EmptyDescription></EmptyHeader></Empty></div>
+    return <div className="paper-grain flex min-h-[calc(100vh-3.5rem)] items-center justify-center p-5 sm:p-8"><Empty className="max-w-lg border bg-card/70"><EmptyHeader><EmptyMedia variant="icon"><CalendarDays /></EmptyMedia><h1 className="font-editorial text-3xl">Your first report is waiting.</h1><EmptyDescription>Create a habit and the city will begin keeping a private record of its rhythm.</EmptyDescription></EmptyHeader></Empty></div>
   }
 
   const activeHabits = habits.filter((habit) => habit.status === "active")
