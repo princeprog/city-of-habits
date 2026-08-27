@@ -3,6 +3,6 @@ import type { MetadataRoute } from "next"
 export const dynamic = "force-static"
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://city-of-habits.vercel.app"
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://city-of-habits-alprinces-projects.vercel.app"
   return [{ url: siteUrl, changeFrequency: "monthly", priority: 1 }]
 }

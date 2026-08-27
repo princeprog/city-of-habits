@@ -4,7 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://city-of-habits.vercel.app"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://city-of-habits-alprinces-projects.vercel.app"
 const siteDescription = "A living map of your daily life. Turn recurring actions into buildings, streets, parks, and neighborhoods in a private personal city."
 
 export const metadata: Metadata = {
