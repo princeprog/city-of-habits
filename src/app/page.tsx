@@ -9,5 +9,16 @@ export const metadata: Metadata = {
 }
 
 export default function Page() {
-  return <LandingPage />
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "City of Habits",
+    applicationCategory: "ProductivityApplication",
+    operatingSystem: "Web",
+    description: "A private, local-first habit tracker that turns repeated actions into a living personal city.",
+    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://city-of-habits.vercel.app",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  }
+
+  return <><LandingPage /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /></>
 }
