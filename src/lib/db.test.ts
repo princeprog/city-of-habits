@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest"
 
-import { clearCity, cityDb, createHabit, normalizeThemeMode, readCitySnapshot, replaceCity, toggleCheckIn } from "@/lib/db"
+import { clearCity, cityDb, createHabit, normalizeThemeMode, readCitySnapshot, replaceCity, savePreferences, toggleCheckIn } from "@/lib/db"
 
 describe("local city persistence", () => {
   beforeEach(async () => {
@@ -36,5 +36,13 @@ describe("local city persistence", () => {
     expect(normalizeThemeMode("system")).toBe("system")
     expect(normalizeThemeMode("unexpected")).toBe("system")
     expect(normalizeThemeMode(undefined)).toBe("system")
+  })
+
+  it("persists each supported theme choice", async () => {
+    for (const theme of ["light", "dark", "system"] as const) {
+      const preferences = await savePreferences({ theme })
+      expect(preferences.theme).toBe(theme)
+      expect((await readCitySnapshot()).preferences.theme).toBe(theme)
+    }
   })
 })
