@@ -1,3 +1,6 @@
 minimumReleaseAgeExclude:
   - '@next/*'
   - next
+
+overrides:
+  rolldown: 1.2.5
