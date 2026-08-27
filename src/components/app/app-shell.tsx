@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { BarChart3, Building2, Compass, Map, Plus, Settings2 } from "lucide-react"
 
-import { CityLogo } from "@/components/city/city-logo"
+import { CityLogoContent } from "@/components/city/city-logo"
 import {
   Sidebar,
   SidebarContent,
@@ -19,7 +19,6 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarRail,
-  SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
@@ -35,16 +34,34 @@ const exploreLinks = [
   { href: "/settings", label: "Settings", icon: Settings2 },
 ]
 
+function normalizePath(path: string) {
+  const normalized = path.replace(/\/+$/, "")
+  return normalized || "/"
+}
+
+function isCurrentRoute(pathname: string, href: string) {
+  return normalizePath(pathname) === normalizePath(href.split("?")[0])
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" variant="sidebar">
-        <SidebarHeader>
-          <CityLogo compact />
+        <SidebarHeader className="h-16 shrink-0 justify-center border-b">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                size="lg"
+                render={<Link href="/" aria-label="City of Habits" />}
+                tooltip="City of Habits"
+              >
+                <CityLogoContent />
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarHeader>
-        <SidebarSeparator />
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupLabel>Navigate</SidebarGroupLabel>
@@ -54,7 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       render={<Link href={item.href} />}
-                      isActive={pathname === item.href}
+                      isActive={isCurrentRoute(pathname, item.href)}
                       tooltip={item.label}
                     >
                       <item.icon />
@@ -73,7 +90,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       render={<Link href={item.href} />}
-                      isActive={pathname === item.href}
+                      isActive={isCurrentRoute(pathname, item.href)}
                       tooltip={item.label}
                     >
                       <item.icon />
@@ -91,7 +108,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <SidebarRail />
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4 sm:px-6">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-3 border-b bg-background px-4 sm:px-6">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-5" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -102,7 +119,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link href="/" className="text-xs text-muted-foreground transition-colors hover:text-foreground">About the project</Link>
           </div>
         </header>
-        <main className="min-h-[calc(100vh-3.5rem)]">{children}</main>
+        <main className="flex-1">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   )
