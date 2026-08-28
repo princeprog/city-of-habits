@@ -126,6 +126,47 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/*
+ * The public landing page has its own light editorial atmosphere. Keeping the
+ * values semantic means the generated shadcn components remain untouched,
+ * while the application can continue to honor the visitor's saved theme.
+ */
+[data-landing-theme="light"] {
+  color-scheme: light;
+  --background: oklch(0.975 0.018 85);
+  --foreground: oklch(0.23 0.025 170);
+  --card: oklch(0.995 0.006 85);
+  --card-foreground: oklch(0.23 0.025 170);
+  --popover: oklch(0.995 0.006 85);
+  --popover-foreground: oklch(0.23 0.025 170);
+  --primary: oklch(0.45 0.1 177);
+  --primary-foreground: oklch(0.985 0.006 85);
+  --secondary: oklch(0.925 0.04 174);
+  --secondary-foreground: oklch(0.25 0.035 170);
+  --muted: oklch(0.945 0.018 85);
+  --muted-foreground: oklch(0.47 0.03 170);
+  --accent: oklch(0.82 0.14 78);
+  --accent-foreground: oklch(0.28 0.035 75);
+  --destructive: oklch(0.63 0.18 30);
+  --destructive-foreground: oklch(0.985 0.006 85);
+  --border: oklch(0.875 0.025 85);
+  --input: oklch(0.875 0.025 85);
+  --ring: oklch(0.52 0.105 177);
+  --chart-1: oklch(0.54 0.13 177);
+  --chart-2: oklch(0.78 0.15 78);
+  --chart-3: oklch(0.63 0.18 30);
+  --chart-4: oklch(0.62 0.14 245);
+  --chart-5: oklch(0.62 0.15 300);
+  --sidebar: oklch(0.995 0.006 85);
+  --sidebar-foreground: oklch(0.23 0.025 170);
+  --sidebar-primary: oklch(0.45 0.1 177);
+  --sidebar-primary-foreground: oklch(0.985 0.006 85);
+  --sidebar-accent: oklch(0.925 0.04 174);
+  --sidebar-accent-foreground: oklch(0.25 0.035 170);
+  --sidebar-border: oklch(0.875 0.025 85);
+  --sidebar-ring: oklch(0.52 0.105 177);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

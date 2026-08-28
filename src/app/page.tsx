@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 
 import { LandingPage } from "@/components/landing/landing-page"
 
@@ -6,6 +6,13 @@ export const metadata: Metadata = {
   title: "City of Habits - A Living Map of Your Daily Life",
   description:
     "Turn recurring actions into buildings, streets, parks, and neighborhoods in a private personal city.",
+}
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  colorScheme: "light",
+  themeColor: "#f7f3e8",
 }
 
 export default function Page() {
