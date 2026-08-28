@@ -134,37 +134,37 @@
 [data-landing-theme="light"] {
   color-scheme: light;
   --background: oklch(0.975 0.018 85);
-  --foreground: oklch(0.23 0.025 170);
+  --foreground: oklch(0.23 0.025 250);
   --card: oklch(0.995 0.006 85);
-  --card-foreground: oklch(0.23 0.025 170);
+  --card-foreground: oklch(0.23 0.025 250);
   --popover: oklch(0.995 0.006 85);
-  --popover-foreground: oklch(0.23 0.025 170);
-  --primary: oklch(0.45 0.1 177);
+  --popover-foreground: oklch(0.23 0.025 250);
+  --primary: oklch(0.47 0.16 255);
   --primary-foreground: oklch(0.985 0.006 85);
-  --secondary: oklch(0.925 0.04 174);
-  --secondary-foreground: oklch(0.25 0.035 170);
+  --secondary: oklch(0.925 0.04 240);
+  --secondary-foreground: oklch(0.25 0.035 250);
   --muted: oklch(0.945 0.018 85);
-  --muted-foreground: oklch(0.47 0.03 170);
+  --muted-foreground: oklch(0.47 0.03 250);
   --accent: oklch(0.82 0.14 78);
   --accent-foreground: oklch(0.28 0.035 75);
   --destructive: oklch(0.63 0.18 30);
   --destructive-foreground: oklch(0.985 0.006 85);
   --border: oklch(0.875 0.025 85);
   --input: oklch(0.875 0.025 85);
-  --ring: oklch(0.52 0.105 177);
-  --chart-1: oklch(0.54 0.13 177);
+  --ring: oklch(0.54 0.14 255);
+  --chart-1: oklch(0.56 0.15 255);
   --chart-2: oklch(0.78 0.15 78);
   --chart-3: oklch(0.63 0.18 30);
-  --chart-4: oklch(0.62 0.14 245);
+  --chart-4: oklch(0.68 0.13 225);
   --chart-5: oklch(0.62 0.15 300);
   --sidebar: oklch(0.995 0.006 85);
-  --sidebar-foreground: oklch(0.23 0.025 170);
-  --sidebar-primary: oklch(0.45 0.1 177);
+  --sidebar-foreground: oklch(0.23 0.025 250);
+  --sidebar-primary: oklch(0.47 0.16 255);
   --sidebar-primary-foreground: oklch(0.985 0.006 85);
-  --sidebar-accent: oklch(0.925 0.04 174);
-  --sidebar-accent-foreground: oklch(0.25 0.035 170);
+  --sidebar-accent: oklch(0.925 0.04 240);
+  --sidebar-accent-foreground: oklch(0.25 0.035 250);
   --sidebar-border: oklch(0.875 0.025 85);
-  --sidebar-ring: oklch(0.52 0.105 177);
+  --sidebar-ring: oklch(0.54 0.14 255);
 }
 
 @layer base {

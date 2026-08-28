@@ -1,4 +1,4 @@
-# Sunlit Civic Landing Page Design QA
+# Cobalt Civic Landing Page Design QA
 
 ## Visual sources
 
@@ -19,16 +19,16 @@ The references were used as combined visual direction rather than literal produc
 
 ## Visual direction and corrections
 
-### Sunlit Civic system
+### Cobalt Civic system
 
-- Added a landing-scoped semantic palette: warm ivory canvas, deep green-ink text, verdant teal primary actions, pale teal surfaces, marigold emphasis, and restrained coral/blue/violet district signals.
+- Added a landing-scoped semantic palette: warm ivory canvas, deep blue-ink text, cobalt blue primary actions, pale blue surfaces, marigold emphasis, and restrained coral/sky/violet district signals.
 - Kept the sample city artwork as the visual anchor and reused its existing signal colors instead of adding new assets.
 - Preserved Inter, Base Nova shadcn primitives, Lucide icons, default radii, and semantic token composition.
 
 ### Composition pass
 
 - Reframed the hero as a borderless, centered editorial introduction with the city preview as a dark visual stage and three overlapping local-first promise cards.
-- Added a six-district legend below the hero, a four-step journey grid, a 12-column asymmetric feature bento, a teal privacy band, and a marigold final CTA/footer.
+- Added a six-district legend below the hero, a four-step journey grid, a 12-column asymmetric feature bento, a cobalt privacy band, and a marigold final CTA/footer.
 - Converted major landing titles to native semantic headings so the visual hierarchy is also available to assistive technology.
 
 ### Responsive and accessibility pass
