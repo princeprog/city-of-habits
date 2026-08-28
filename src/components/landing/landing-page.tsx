@@ -177,7 +177,7 @@ export function LandingPage() {
         className="px-3 pb-16 pt-3 sm:px-5 sm:pb-20 lg:px-8"
         aria-labelledby="landing-title"
       >
-        <Card className="relative mx-auto max-w-[93rem] overflow-hidden py-12 sm:py-16 lg:py-20">
+        <Card className="relative mx-auto max-w-[93rem] overflow-hidden bg-background py-12 ring-0 sm:py-16 lg:py-20">
           <CardHeader className="relative mx-auto w-full max-w-5xl justify-items-center px-5 text-center sm:px-8">
             <Reveal className="grid w-full justify-items-center">
               <Badge variant="outline">Frontend-only / local-first</Badge>
