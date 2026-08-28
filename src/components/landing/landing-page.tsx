@@ -12,6 +12,7 @@ import {
   Landmark,
   LockKeyhole,
   Map,
+  Route,
   Sparkles,
 } from "lucide-react";
 
@@ -26,7 +27,6 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -36,17 +36,29 @@ const heroPromises = [
     icon: LockKeyhole,
     label: "No account",
     description: "Begin without a profile or public identity.",
+    tone: "text-primary",
   },
   {
     icon: CloudOff,
     label: "Works offline",
     description: "Your city remains available on this device.",
+    tone: "text-chart-4",
   },
   {
     icon: Download,
     label: "Export anytime",
     description: "Keep a portable JSON backup of your progress.",
+    tone: "text-chart-2",
   },
+] as const;
+
+const districts = [
+  { name: "Mind", tone: "text-chart-4", surface: "bg-chart-4/10" },
+  { name: "Creative", tone: "text-chart-2", surface: "bg-chart-2/15" },
+  { name: "Connection", tone: "text-chart-3", surface: "bg-chart-3/10" },
+  { name: "Work", tone: "text-chart-1", surface: "bg-chart-1/10" },
+  { name: "Recovery", tone: "text-chart-2", surface: "bg-chart-2/15" },
+  { name: "Body", tone: "text-chart-5", surface: "bg-chart-5/10" },
 ] as const;
 
 const steps = [
@@ -54,21 +66,33 @@ const steps = [
     icon: Sparkles,
     title: "Name",
     description: "Choose a behavior you want to see in the city.",
+    detail: "Start with one foundation",
+    tone: "text-chart-3",
+    surface: "bg-chart-3/10",
   },
   {
     icon: Map,
     title: "Place",
     description: "Give it a district and a visual identity.",
+    detail: "Make the intention visible",
+    tone: "text-chart-4",
+    surface: "bg-chart-4/10",
   },
   {
     icon: CheckCircle2,
     title: "Check in",
     description: "Mark the habit as done with one calm interaction.",
+    detail: "Return whenever you can",
+    tone: "text-primary",
+    surface: "bg-primary/10",
   },
   {
     icon: Eye,
     title: "Notice",
     description: "Explore what the pattern is making possible.",
+    detail: "Let the bigger picture emerge",
+    tone: "text-chart-2",
+    surface: "bg-chart-2/15",
   },
 ] as const;
 
@@ -76,10 +100,12 @@ const features = [
   {
     icon: Building2,
     eyebrow: "Habits become places",
-    title: "Build a city you can read at a glance",
+    title: "Read your progress as a city",
     description:
       "Each repeated action becomes a building. As the habit continues, its place gains detail and the wider neighborhood begins to take shape.",
-    className: "md:col-span-2 md:row-span-2",
+    footer: "Buildings, paths, and landmarks grow together.",
+    className: "lg:col-span-7 lg:row-span-2 lg:min-h-[34rem]",
+    tone: "primary",
   },
   {
     icon: Compass,
@@ -87,23 +113,39 @@ const features = [
     title: "Give every routine a meaningful home",
     description:
       "Body, Mind, Creative, Connection, Work, and Recovery keep different parts of life visible without turning them into a leaderboard.",
-    className: "md:col-span-1",
+    footer: "A place for every kind of progress.",
+    className: "lg:col-span-5",
+    tone: "accent",
+  },
+  {
+    icon: CheckCircle2,
+    eyebrow: "One calm check-in",
+    title: "Keep the loop small enough to repeat",
+    description:
+      "A single local check-in is enough to add another day to the story. Missed days never erase what you built.",
+    footer: "Progress is lifetime-derived.",
+    className: "lg:col-span-5",
+    tone: "secondary",
   },
   {
     icon: BarChart3,
     eyebrow: "Private reports",
-    title: "Read patterns without judgment",
+    title: "Notice patterns without judgment",
     description:
       "See completion rhythm, active foundations, and recent growth through a calm local report.",
-    className: "md:col-span-1",
+    footer: "Reflection stays on your device.",
+    className: "lg:col-span-4",
+    tone: "coral",
   },
   {
-    icon: Sparkles,
-    eyebrow: "Gentle continuity",
-    title: "Missed days change the atmosphere, not the past",
+    icon: Download,
+    eyebrow: "Portable by design",
+    title: "Take the map with you",
     description:
-      "The city can feel quieter without erasing what you already built. Progress stays useful even when a streak ends.",
-    className: "md:col-span-2",
+      "Export a complete JSON backup whenever you want, then keep your records close and under your control.",
+    footer: "No remote account required.",
+    className: "lg:col-span-8",
+    tone: "ivory",
   },
 ] as const;
 
@@ -132,10 +174,21 @@ const privacyPromises = [
   },
 ] as const;
 
+const closingSignals = [
+  { icon: Building2, label: "Foundations" },
+  { icon: Route, label: "Connections" },
+  { icon: Landmark, label: "Landmarks" },
+  { icon: BarChart3, label: "Reports" },
+  { icon: Download, label: "Backups" },
+] as const;
+
 export function LandingPage() {
   return (
-    <main className="min-h-screen overflow-x-clip">
-      <header className="sticky top-0 z-20 border-b bg-background">
+    <main
+      data-landing-theme="light"
+      className="min-h-screen overflow-x-clip bg-background text-foreground"
+    >
+      <header className="sticky top-0 z-20 border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="mx-auto flex h-20 max-w-[93rem] items-center justify-between px-5 sm:px-8 lg:px-12">
           <CityLogo />
           <nav
@@ -174,190 +227,182 @@ export function LandingPage() {
       </header>
 
       <section
-        className="px-3 pb-16 pt-3 sm:px-5 sm:pb-20 lg:px-8"
+        className="px-5 pb-20 pt-12 sm:px-8 sm:pb-24 sm:pt-16 lg:px-12 lg:pt-20"
         aria-labelledby="landing-title"
       >
-        <Card className="relative mx-auto max-w-[93rem] overflow-hidden bg-background py-12 ring-0 sm:py-16 lg:py-20">
-          <CardHeader className="relative mx-auto w-full max-w-5xl justify-items-center px-5 text-center sm:px-8">
-            <Reveal className="grid w-full justify-items-center">
-              <Badge variant="outline">Frontend-only / local-first</Badge>
-              <h1
-                id="landing-title"
-                className="mt-5 max-w-4xl text-balance text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl"
+        <div className="mx-auto max-w-[93rem]">
+          <Reveal className="mx-auto max-w-4xl text-center">
+            <Badge
+              className="border-primary/25 bg-primary/5 text-primary"
+              variant="outline"
+            >
+              A private daily practice
+            </Badge>
+            <h1
+              id="landing-title"
+              className="mt-6 text-balance text-5xl font-semibold tracking-tight sm:text-7xl lg:text-8xl"
+            >
+              See the life <span className="text-primary">you are building.</span>
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
+              City of Habits turns recurring actions into a living personal
+              city. Every check-in adds detail, warmth, and a reason to
+              return.
+            </p>
+            <div className="mt-7 flex flex-wrap justify-center gap-3">
+              <Link href="/city" className={buttonVariants({ size: "lg" })}>
+                Build your city <ArrowRight data-icon="inline-end" />
+              </Link>
+              <Link
+                href="#how-it-works"
+                className={buttonVariants({
+                  size: "lg",
+                  variant: "outline",
+                })}
               >
-                See the life you are building.
-              </h1>
-              <CardDescription className="mt-4 max-w-2xl text-pretty text-base sm:text-lg">
-                City of Habits turns recurring actions into a living personal
-                city. Every check-in adds detail, warmth, and a reason to
-                return.
-              </CardDescription>
-              <div className="mt-5 flex flex-wrap justify-center gap-3">
-                <Link href="/city" className={buttonVariants({ size: "lg" })}>
-                  Build your city <ArrowRight data-icon="inline-end" />
-                </Link>
-                <Link
-                  href="#how-it-works"
-                  className={buttonVariants({
-                    size: "lg",
-                    variant: "outline",
-                  })}
-                >
-                  Take the short tour <ArrowRight data-icon="inline-end" />
-                </Link>
-              </div>
-            </Reveal>
-          </CardHeader>
+                Take the short tour <ArrowRight data-icon="inline-end" />
+              </Link>
+            </div>
+          </Reveal>
 
-          <CardContent className="relative mx-auto mt-10 w-full max-w-5xl px-5 sm:px-8 lg:px-16">
-            <Reveal delay={0.12} distance={28}>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Sample city</CardTitle>
-                  <CardDescription>
+          <Reveal delay={0.12} distance={28}>
+            <Card className="relative mx-auto mt-16 max-w-6xl overflow-hidden bg-foreground text-background shadow-xl">
+              <CardHeader className="gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+                <div>
+                  <h2 className="font-heading text-base leading-snug font-medium text-background">
+                    A sample city
+                  </h2>
+                  <CardDescription className="text-background/70">
                     Six foundations connected into one living map.
                   </CardDescription>
-                  <CardAction>
-                    <Badge variant="outline">6 buildings</Badge>
-                  </CardAction>
-                </CardHeader>
-                <CardContent>
-                  <Image
-                    src="/sample-city-hero.png"
-                    alt="An isometric sample city with Mind, Creative, Connection, Work, Recovery, and Body districts connected by roads."
-                    width={1448}
-                    height={1086}
-                    sizes="(min-width: 1280px) 56rem, (min-width: 640px) 80vw, 92vw"
-                    className="aspect-[4/3] w-full object-cover"
-                    priority
-                  />
-                </CardContent>
-              </Card>
-            </Reveal>
-          </CardContent>
+                </div>
+                <CardAction>
+                  <Badge variant="secondary">Six districts</Badge>
+                </CardAction>
+              </CardHeader>
+              <CardContent className="px-3 pb-3 sm:px-5 sm:pb-5">
+                <Image
+                  src="/sample-city-hero.png"
+                  alt="An isometric sample city with Mind, Creative, Connection, Work, Recovery, and Body districts connected by roads."
+                  width={1448}
+                  height={1086}
+                  sizes="(min-width: 1280px) 72rem, (min-width: 640px) 90vw, 94vw"
+                  className="aspect-[4/3] w-full object-cover"
+                  priority
+                />
+              </CardContent>
+            </Card>
+          </Reveal>
 
-          {heroPromises.map(({ icon: Icon, label, description }, index) => (
-            <Reveal
-              key={label}
-              className={cn(
-                "absolute hidden xl:block",
-                index === 0 && "left-8 top-48 -rotate-2",
-                index === 1 && "right-8 top-60 rotate-2",
-                index === 2 && "bottom-16 left-10 rotate-1",
-              )}
-              delay={0.22 + index * 0.08}
-              distance={16}
-            >
-              <Card size="sm" className="w-48">
-                <CardHeader>
-                  <Icon aria-hidden="true" />
-                  <CardTitle>{label}</CardTitle>
-                  <CardDescription>{description}</CardDescription>
-                </CardHeader>
-              </Card>
-            </Reveal>
-          ))}
-
-          <div className="mx-5 mt-8 flex justify-center sm:mx-8 xl:hidden">
-            <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-              {heroPromises.map(({ icon: Icon, label }) => (
-                <span key={label} className="inline-flex items-center gap-2">
-                  <Icon className="size-4" aria-hidden="true" />
-                  {label}
-                </span>
-              ))}
-            </div>
+          <div className="relative z-10 mx-auto -mt-7 grid max-w-5xl gap-3 px-2 sm:grid-cols-3 sm:px-8">
+            {heroPromises.map(
+              ({ icon: Icon, label, description, tone }, index) => (
+                <Reveal key={label} delay={0.2 + index * 0.08} distance={16}>
+                  <Card
+                    size="sm"
+                    className="h-full bg-card/95 shadow-md backdrop-blur"
+                  >
+                    <CardHeader>
+                      <Icon className={cn("mb-1", tone)} aria-hidden="true" />
+                      <h3 className="font-heading text-base leading-snug font-medium">
+                        {label}
+                      </h3>
+                      <CardDescription>{description}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Reveal>
+              ),
+            )}
           </div>
-        </Card>
-      </section>
 
-      <section
-        id="how-it-works"
-        className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 sm:px-8 lg:px-12 lg:py-24"
-        aria-labelledby="how-it-works-title"
-      >
-        <Reveal className="mx-auto max-w-3xl text-center">
-          <Badge variant="outline">How it works</Badge>
-          <h2
-            id="how-it-works-title"
-            className="mt-5 text-balance text-4xl font-semibold tracking-tight sm:text-6xl"
-          >
-            One intention becomes a living neighborhood.
-          </h2>
-          <p className="mt-5 text-pretty text-muted-foreground sm:text-lg">
-            The loop stays small enough to repeat and visual enough to notice.
-            You make one calm choice; the city carries the longer story.
-          </p>
-        </Reveal>
-
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {steps.map(({ icon: Icon, title, description }, index) => (
-            <Reveal key={title} className="h-full" delay={index * 0.07}>
-              <Card size="sm" className="h-full min-h-52">
-                <CardHeader>
-                  <Icon aria-hidden="true" />
-                  <CardDescription>0{index + 1}</CardDescription>
-                  <CardTitle>{title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{description}</p>
-                </CardContent>
-              </Card>
-            </Reveal>
-          ))}
+          <Reveal delay={0.32} distance={12}>
+            <div className="mx-auto mt-10 flex max-w-4xl flex-col items-center gap-4 text-center">
+              <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
+                <span>Six districts</span>
+                <Separator className="hidden w-12 bg-primary/30 sm:block" />
+                <span>One living map</span>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {districts.map(({ name, tone, surface }) => (
+                  <Badge
+                    key={name}
+                    variant="outline"
+                    className={cn("gap-2 border-border/70", surface, tone)}
+                  >
+                    <span
+                      className="size-2 rounded-full bg-current"
+                      aria-hidden="true"
+                    />
+                    {name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </Reveal>
         </div>
       </section>
 
       <section
-        id="features"
-        className="scroll-mt-24 border-y bg-muted/30"
-        aria-labelledby="features-title"
+        id="how-it-works"
+        className="scroll-mt-24 px-5 py-20 sm:px-8 sm:py-24 lg:px-12"
+        aria-labelledby="how-it-works-title"
       >
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
+        <div className="mx-auto max-w-7xl">
           <Reveal className="mx-auto max-w-3xl text-center">
-            <Badge variant="outline">Features</Badge>
+            <Badge
+              className="border-primary/25 bg-primary/5 text-primary"
+              variant="outline"
+            >
+              How it works
+            </Badge>
             <h2
-              id="features-title"
+              id="how-it-works-title"
               className="mt-5 text-balance text-4xl font-semibold tracking-tight sm:text-6xl"
             >
-              Keep your whole practice in one place.
+              One intention becomes a living neighborhood.
             </h2>
             <p className="mt-5 text-pretty text-muted-foreground sm:text-lg">
-              A habit tracker, a city builder, and a private reflection
-              space—all connected by the same small daily action.
+              The loop stays small enough to repeat and visual enough to notice.
+              You make one calm choice; the city carries the longer story.
             </p>
           </Reveal>
 
-          <div className="mt-12 grid gap-4 md:grid-cols-4">
-            {features.map(
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {steps.map(
               (
-                { icon: Icon, eyebrow, title, description, className },
+                { icon: Icon, title, description, detail, tone, surface },
                 index,
               ) => (
-                <Reveal
-                  key={title}
-                  className={cn("h-full", className)}
-                  delay={index * 0.07}
-                >
-                  <Card className="h-full min-h-64">
+                <Reveal key={title} className="h-full" delay={index * 0.07}>
+                  <Card size="sm" className="h-full min-h-64 bg-card">
                     <CardHeader>
-                      <Icon aria-hidden="true" />
-                      <CardDescription>{eyebrow}</CardDescription>
-                      <CardTitle>{title}</CardTitle>
+                      <div
+                        className={cn(
+                          "flex size-11 items-center justify-center rounded-full",
+                          surface,
+                          tone,
+                        )}
+                      >
+                        <Icon aria-hidden="true" />
+                      </div>
+                      <CardDescription className="pt-2 text-xs uppercase tracking-[0.18em]">
+                        Step 0{index + 1}
+                      </CardDescription>
+                      <h3 className="font-heading text-base leading-snug font-medium">
+                        {title}
+                      </h3>
                     </CardHeader>
-                    <CardContent className="mt-auto">
-                      <p className="max-w-xl text-sm text-muted-foreground">
+                    <CardContent className="flex flex-col gap-3">
+                      <p className="text-sm text-muted-foreground">
                         {description}
                       </p>
+                      <Badge
+                        variant="outline"
+                        className="w-fit border-border/70"
+                      >
+                        {detail}
+                      </Badge>
                     </CardContent>
-                    {title === "Build a city you can read at a glance" ? (
-                      <CardFooter>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Landmark aria-hidden="true" />
-                          Buildings, paths, and landmarks grow together.
-                        </div>
-                      </CardFooter>
-                    ) : null}
                   </Card>
                 </Reveal>
               ),
@@ -367,95 +412,220 @@ export function LandingPage() {
       </section>
 
       <section
-        id="privacy"
-        className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 sm:px-8 lg:px-12 lg:py-24"
-        aria-labelledby="privacy-title"
+        id="features"
+        className="scroll-mt-24 bg-secondary/45 px-5 py-20 sm:px-8 sm:py-24 lg:px-12"
+        aria-labelledby="features-title"
       >
-        <Reveal className="mx-auto max-w-3xl text-center">
-          <Badge variant="outline">Local-first</Badge>
-          <h2
-            id="privacy-title"
-            className="mt-5 text-balance text-4xl font-semibold tracking-tight sm:text-6xl"
-          >
-            Your routines stay yours.
-          </h2>
-          <p className="mt-5 text-pretty text-muted-foreground sm:text-lg">
-            City of Habits is designed as a private place to notice your own
-            patterns, not another platform that asks you to perform them.
-          </p>
-        </Reveal>
+        <div className="mx-auto max-w-7xl">
+          <Reveal className="mx-auto max-w-3xl text-center">
+            <Badge
+              className="border-primary/25 bg-primary/5 text-primary"
+              variant="outline"
+            >
+              Features
+            </Badge>
+            <h2
+              id="features-title"
+              className="mt-5 text-balance text-4xl font-semibold tracking-tight sm:text-6xl"
+            >
+              Keep your whole practice in one place.
+            </h2>
+            <p className="mt-5 text-pretty text-muted-foreground sm:text-lg">
+              A habit tracker, a city builder, and a private reflection space—all
+              connected by the same small daily action.
+            </p>
+          </Reveal>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {privacyPromises.map(({ icon: Icon, title, description }, index) => (
-            <Reveal key={title} className="h-full" delay={index * 0.07}>
-              <Card size="sm" className="h-full min-h-48">
-                <CardHeader>
-                  <Icon aria-hidden="true" />
-                  <CardTitle>{title}</CardTitle>
-                  <CardDescription>{description}</CardDescription>
-                </CardHeader>
-              </Card>
-            </Reveal>
-          ))}
+          <div className="mt-14 grid gap-4 lg:grid-cols-12 lg:grid-rows-2">
+            {features.map(
+              (
+                {
+                  icon: Icon,
+                  eyebrow,
+                  title,
+                  description,
+                  footer,
+                  className,
+                  tone,
+                },
+                index,
+              ) => {
+                const isPrimary = tone === "primary";
+                const surface = {
+                  primary: "bg-primary text-primary-foreground",
+                  accent: "bg-accent/35",
+                  secondary: "bg-secondary",
+                  coral: "bg-chart-3/10",
+                  ivory: "bg-card",
+                }[tone];
+
+                return (
+                  <Reveal
+                    key={title}
+                    className={cn("h-full", className)}
+                    delay={index * 0.07}
+                  >
+                    <Card
+                      className={cn(
+                        "flex h-full flex-col overflow-hidden",
+                        surface,
+                      )}
+                    >
+                      <CardHeader className="gap-4">
+                        <Icon
+                          className={cn(
+                            "mb-1",
+                            isPrimary ? "text-accent" : "text-primary",
+                          )}
+                          aria-hidden="true"
+                        />
+                        <CardDescription
+                          className={cn(
+                            "text-xs uppercase tracking-[0.18em]",
+                            isPrimary && "text-primary-foreground/70",
+                          )}
+                        >
+                          {eyebrow}
+                        </CardDescription>
+                        <h3
+                          className={cn(
+                            "font-heading text-2xl leading-snug font-medium sm:text-3xl",
+                            isPrimary && "text-primary-foreground",
+                          )}
+                        >
+                          {title}
+                        </h3>
+                      </CardHeader>
+                      <CardContent className="mt-auto">
+                        <p
+                          className={cn(
+                            "max-w-xl text-sm leading-6 text-muted-foreground",
+                            isPrimary && "text-primary-foreground/75",
+                          )}
+                        >
+                          {description}
+                        </p>
+                      </CardContent>
+                      <CardFooter>
+                        <Badge
+                          variant={isPrimary ? "secondary" : "outline"}
+                          className={cn(
+                            "border-border/70",
+                            isPrimary && "border-transparent",
+                          )}
+                        >
+                          {footer}
+                        </Badge>
+                      </CardFooter>
+                    </Card>
+                  </Reveal>
+                );
+              },
+            )}
+          </div>
         </div>
       </section>
 
       <section
-        className="px-3 pb-3 sm:px-5 sm:pb-5 lg:px-8 lg:pb-8"
-        aria-labelledby="final-cta-title"
+        id="privacy"
+        className="scroll-mt-24 px-5 py-20 sm:px-8 sm:py-24 lg:px-12"
+        aria-labelledby="privacy-title"
       >
-        <Card className="relative mx-auto min-h-[34rem] max-w-[93rem] justify-center overflow-hidden py-16 sm:min-h-[40rem]">
-          <CardHeader className="relative mx-auto w-full max-w-3xl justify-items-center px-5 text-center sm:px-8">
-            <Reveal className="grid w-full justify-items-center">
-              <Badge variant="outline">Your city is waiting</Badge>
+        <Card className="mx-auto max-w-[93rem] overflow-hidden bg-primary text-primary-foreground">
+          <div className="grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+            <CardHeader className="gap-5 px-6 py-10 sm:px-10 sm:py-14 lg:px-14 lg:py-16">
+              <Badge variant="secondary" className="w-fit">
+                Local-first
+              </Badge>
               <h2
-                id="final-cta-title"
-                className="mt-5 text-balance text-4xl font-semibold tracking-tight sm:text-7xl"
+                id="privacy-title"
+                className="text-balance text-4xl tracking-tight text-primary-foreground sm:text-6xl"
               >
-                Start with one foundation.
+                The map is yours to keep.
               </h2>
-              <CardDescription className="mt-4 max-w-xl text-pretty text-base sm:text-lg">
-                Choose one behavior worth returning to. The streets, buildings,
-                and landmarks can grow from there.
+              <CardDescription className="max-w-xl text-pretty text-base text-primary-foreground sm:text-lg">
+                City of Habits is designed as a private place to notice your own
+                patterns, not another platform that asks you to perform them.
               </CardDescription>
               <Link
                 href="/city"
-                className={cn(buttonVariants({ size: "lg" }), "mt-5")}
+                className={cn(
+                  buttonVariants({ variant: "secondary", size: "lg" }),
+                  "mt-2 w-fit",
+                )}
               >
-                Enter your empty city <ArrowRight data-icon="inline-end" />
+                Open your city <ArrowRight data-icon="inline-end" />
               </Link>
-            </Reveal>
+            </CardHeader>
+
+            <CardContent className="grid gap-8 px-6 py-10 sm:grid-cols-2 sm:px-10 sm:py-14 lg:border-l lg:border-primary-foreground/20 lg:px-14 lg:py-16">
+              {privacyPromises.map(({ icon: Icon, title, description }) => (
+                <div key={title} className="flex gap-4">
+                  <Icon className="shrink-0 text-accent" aria-hidden="true" />
+                  <div className="flex flex-col gap-1">
+                    <h3 className="font-medium text-primary-foreground">
+                      {title}
+                    </h3>
+                    <p className="text-sm leading-6 text-primary-foreground">
+                      {description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </div>
+        </Card>
+      </section>
+
+      <section
+        className="px-5 pb-6 sm:px-8 sm:pb-8 lg:px-12"
+        aria-labelledby="final-cta-title"
+      >
+        <Card className="mx-auto max-w-[93rem] overflow-hidden bg-accent/30">
+          <CardHeader className="mx-auto w-full max-w-4xl items-center px-6 py-16 text-center sm:px-10 sm:py-24">
+            <Badge
+              className="border-primary/25 bg-background/70 text-primary"
+              variant="outline"
+            >
+              Start small
+            </Badge>
+            <h2
+              id="final-cta-title"
+              className="mt-5 text-balance font-heading text-4xl leading-snug font-medium tracking-tight sm:text-7xl"
+            >
+              One foundation. <span className="text-primary">A city can follow.</span>
+            </h2>
+              <CardDescription className="mt-4 max-w-2xl text-pretty text-base sm:text-lg">
+              Choose one behavior worth returning to. The streets, buildings, and
+              landmarks can grow from there.
+            </CardDescription>
+            <Link
+              href="/city"
+              className={cn(buttonVariants({ size: "lg" }), "mt-7")}
+            >
+              Enter your empty city <ArrowRight data-icon="inline-end" />
+            </Link>
           </CardHeader>
 
-          <CardContent className="mx-auto mt-12 w-full max-w-4xl px-5 sm:px-8">
-            <Reveal
-              className="grid grid-cols-3 gap-4 sm:grid-cols-6"
-              delay={0.1}
-            >
-              {[
-                Building2,
-                Compass,
-                CheckCircle2,
-                Landmark,
-                BarChart3,
-                Download,
-              ].map((Icon, index) => (
-                <Card
-                  key={index}
-                  size="sm"
+          <CardContent className="px-6 pb-10 sm:px-10 sm:pb-14">
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+              {closingSignals.map(({ icon: Icon, label }, index) => (
+                <Badge
+                  key={label}
+                  variant="outline"
                   className={cn(
-                    "aspect-square items-center justify-center p-0",
-                    index % 2 === 0 ? "-rotate-2" : "rotate-2",
+                    "gap-2 border-border/70 bg-background/65 px-4 py-2",
+                    index % 2 === 0 ? "-rotate-1" : "rotate-1",
                   )}
-                  aria-hidden="true"
                 >
-                  <Icon />
-                </Card>
+                  <Icon aria-hidden="true" />
+                  {label}
+                </Badge>
               ))}
-            </Reveal>
+            </div>
           </CardContent>
 
-          <CardFooter className="mx-5 mt-12 flex-col items-start justify-between gap-4 sm:mx-8 sm:flex-row sm:items-center">
+          <CardFooter className="mx-6 flex-col items-start justify-between gap-4 border-t border-border/70 px-0 py-6 sm:mx-10 sm:flex-row sm:items-center sm:px-0">
             <CityLogo compact />
             <p className="text-left text-sm text-muted-foreground sm:text-right">
               Built quietly, kept locally.
@@ -465,19 +635,22 @@ export function LandingPage() {
       </section>
 
       <footer>
-        <div className="mx-auto flex max-w-[93rem] flex-col gap-4 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12">
-          <div className="flex items-center gap-3">
-            <span>City of Habits</span>
-            <Separator orientation="vertical" className="h-4" />
-            <span>A living map of your daily life.</span>
-          </div>
-          <div className="flex gap-5">
-            <Link href="#how-it-works" className="hover:text-foreground">
-              How it works
-            </Link>
-            <Link href="#privacy" className="hover:text-foreground">
-              Privacy
-            </Link>
+        <div className="mx-auto max-w-[93rem] px-5 sm:px-8 lg:px-12">
+          <Separator />
+          <div className="flex flex-col gap-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <span>City of Habits</span>
+              <Separator orientation="vertical" className="h-4" />
+              <span>A living map of your daily life.</span>
+            </div>
+            <div className="flex gap-5">
+              <Link href="#how-it-works" className="hover:text-foreground">
+                How it works
+              </Link>
+              <Link href="#privacy" className="hover:text-foreground">
+                Privacy
+              </Link>
+            </div>
           </div>
         </div>
       </footer>
