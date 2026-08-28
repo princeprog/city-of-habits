@@ -39,7 +39,7 @@ test("keeps the landing page crawlable and explains the privacy promise", async 
     page.getByRole("heading", { name: /see the life you are building/i }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: /your routines stay yours/i }),
+    page.getByRole("heading", { name: /the map is yours to keep/i }),
   ).toBeVisible();
   await expect(page.getByText("No account").first()).toBeVisible();
   await expect(page.getByText("Works offline").first()).toBeVisible();
@@ -47,6 +47,81 @@ test("keeps the landing page crawlable and explains the privacy promise", async 
   await expect(
     page.getByRole("link", { name: /build your city/i }),
   ).toHaveAttribute("href", /\/city\/?$/);
+  const cityLinks = page.locator('a[href^="/city"]');
+  expect(await cityLinks.count()).toBeGreaterThanOrEqual(3);
+});
+
+test("keeps the landing palette light and exposes landing viewport metadata", async ({
+  page,
+}) => {
+  const palettes = [] as Array<{
+    colorScheme: string;
+    backgroundColor: string;
+    foregroundColor: string;
+    primaryBackground: string;
+    themeColor: string;
+    landingBackground: string;
+  }>;
+
+  for (const colorScheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme });
+    await page.goto("/");
+
+    const landing = page.locator('[data-landing-theme="light"]');
+    await expect(landing).toBeVisible();
+    await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute(
+      "content",
+      "light",
+    );
+
+    const palette = await landing.evaluate((element) => {
+      const styles = getComputedStyle(element);
+      const primaryLink =
+        element.querySelector<HTMLAnchorElement>('a[href^="/city"]');
+      const primaryStyles = primaryLink
+        ? getComputedStyle(primaryLink)
+        : styles;
+      const themeMeta = Array.from(
+        document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'),
+      ).find((meta) => !meta.media);
+      const canvas = document.createElement("canvas");
+      canvas.width = 1;
+      canvas.height = 1;
+      const context = canvas.getContext("2d");
+      const normalizeColor = (value: string) => {
+        if (!context || !value) return "";
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = value;
+        context.fillRect(0, 0, 1, 1);
+        return Array.from(context.getImageData(0, 0, 1, 1).data).join(",");
+      };
+
+      return {
+        colorScheme: styles.colorScheme,
+        backgroundColor: styles.backgroundColor,
+        foregroundColor: styles.color,
+        primaryBackground: primaryStyles.backgroundColor,
+        themeColor: normalizeColor(themeMeta?.content ?? ""),
+        landingBackground: normalizeColor(styles.backgroundColor),
+      };
+    });
+
+    expect(palette.colorScheme).toBe("light");
+    expect(palette.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+    expect(palette.themeColor).toMatch(/^\d+,\d+,\d+,\d+$/);
+    const themeChannels = palette.themeColor.split(",").map(Number);
+    const landingChannels = palette.landingBackground.split(",").map(Number);
+    expect(
+      Math.max(
+        ...themeChannels
+          .slice(0, 3)
+          .map((channel, index) => Math.abs(channel - landingChannels[index])),
+      ),
+    ).toBeLessThanOrEqual(8);
+    palettes.push(palette);
+  }
+
+  expect(palettes[0]).toEqual(palettes[1]);
 });
 
 test("connects landing navigation to its sections with smooth scrolling", async ({
@@ -108,35 +183,73 @@ test("keeps content visible and scrolling immediate when reduced motion is reque
 test("keeps the landing composition inside the viewport", async ({ page }) => {
   for (const viewport of [
     { width: 360, height: 800 },
+    { width: 390, height: 844 },
     { width: 768, height: 900 },
     { width: 1440, height: 900 },
+    { width: 1572, height: 912 },
   ]) {
+    await page.emulateMedia({ colorScheme: "light" });
     await page.setViewportSize(viewport);
     await page.goto("/");
     await expect(
       page.getByRole("heading", { name: /see the life you are building/i }),
     ).toBeVisible();
 
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - window.innerWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(0);
+    const overflow = await page.evaluate(() => ({
+      document: document.documentElement.scrollWidth - window.innerWidth,
+      body: document.body.scrollWidth - document.body.clientWidth,
+    }));
+    expect(overflow.document).toBeLessThanOrEqual(0);
+    expect(overflow.body).toBeLessThanOrEqual(0);
   }
 
-  const resolvedBackgrounds: string[] = [];
+  const resolvedLandingPalettes: Array<{
+    background: string;
+    foreground: string;
+    primary: string;
+  }> = [];
 
   for (const colorScheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme });
     await page.goto("/");
-    await expect(
-      page.getByRole("heading", { name: /see the life you are building/i }),
-    ).toBeVisible();
-    resolvedBackgrounds.push(
-      await page.evaluate(() => getComputedStyle(document.body).backgroundColor),
+    resolvedLandingPalettes.push(
+      await page.locator('[data-landing-theme="light"]').evaluate((element) => {
+        const styles = getComputedStyle(element);
+        const primary =
+          element.querySelector<HTMLAnchorElement>('a[href^="/city"]');
+        return {
+          background: styles.backgroundColor,
+          foreground: styles.color,
+          primary: primary ? getComputedStyle(primary).backgroundColor : "",
+        };
+      }),
     );
   }
 
-  expect(resolvedBackgrounds[0]).not.toBe(resolvedBackgrounds[1]);
+  expect(resolvedLandingPalettes[0]).toEqual(resolvedLandingPalettes[1]);
+});
+
+test("keeps application theming independent from the light-only landing page", async ({
+  page,
+}) => {
+  await page.evaluate(() => localStorage.removeItem("theme"));
+
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/city");
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  await expect(page.locator('[data-landing-theme="light"]')).toHaveCount(0);
+  const darkApplicationBackground = await page.evaluate(
+    () => getComputedStyle(document.body).backgroundColor,
+  );
+
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto("/city");
+  await expect(page.locator("html")).not.toHaveClass(/dark/);
+  const lightApplicationBackground = await page.evaluate(
+    () => getComputedStyle(document.body).backgroundColor,
+  );
+
+  expect(darkApplicationBackground).not.toBe(lightApplicationBackground);
 });
 
 test("keeps the application headers aligned across sidebar states and viewports", async ({
@@ -262,18 +375,16 @@ test("renders every public route without serious accessibility violations", asyn
             .first()
             .locator("[data-reveal]")
             .evaluateAll((elements) =>
-              elements.every(
-                (element) => {
-                  const bounds = element.getBoundingClientRect();
-                  const isInInitialViewport =
-                    bounds.top >= 0 && bounds.bottom <= window.innerHeight;
+              elements.every((element) => {
+                const bounds = element.getBoundingClientRect();
+                const isInInitialViewport =
+                  bounds.top >= 0 && bounds.bottom <= window.innerHeight;
 
-                  return (
-                    !isInInitialViewport ||
-                    getComputedStyle(element).opacity === "1"
-                  );
-                },
-              ),
+                return (
+                  !isInInitialViewport ||
+                  getComputedStyle(element).opacity === "1"
+                );
+              }),
             ),
         )
         .toBe(true);
