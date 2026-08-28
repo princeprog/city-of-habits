@@ -1,4 +1,4 @@
-# Cobalt Civic Landing Page Design QA
+# Midnight Civic Landing Page Design QA
 
 ## Visual sources
 
@@ -15,13 +15,13 @@ The references were used as combined visual direction rather than literal produc
 - Mobile full page: `C:\Users\Al Prince\Documents\Products\City of Habits\outputs\landing-page-mobile.png` (390 x 6938 rendered pixels)
 - Borderless hero follow-up: `C:\Users\Al Prince\Documents\Products\City of Habits\outputs\landing-hero-borderless.png` (1572 x 912 rendered pixels)
 - CSS viewports: 1440 x 900 desktop, 390 x 844 mobile, and 1572 x 912 annotation follow-up.
-- Runtime state: light landing scope with reveal animations completed before full-page capture.
+- Runtime state: fixed midnight landing scope with reveal animations completed before full-page capture.
 
 ## Visual direction and corrections
 
-### Cobalt Civic system
+### Midnight Civic system
 
-- Added a landing-scoped semantic palette: warm ivory canvas, deep blue-ink text, cobalt blue primary actions, pale blue surfaces, marigold emphasis, and restrained coral/sky/violet district signals.
+- Added a landing-scoped semantic palette: midnight navy canvas, warm ivory text, cobalt blue primary actions, blue-black surfaces, marigold emphasis, and restrained coral/sky/violet district signals.
 - Kept the sample city artwork as the visual anchor and reused its existing signal colors instead of adding new assets.
 - Preserved Inter, Base Nova shadcn primitives, Lucide icons, default radii, and semantic token composition.
 
@@ -33,7 +33,7 @@ The references were used as combined visual direction rather than literal produc
 
 ### Responsive and accessibility pass
 
-- Added `color-scheme: light` and landing-specific viewport metadata while leaving application theme preferences untouched.
+- Kept the landing's fixed `color-scheme: light` contract and matched its viewport theme color to the midnight canvas while leaving application theme preferences untouched.
 - Confirmed the landing palette is identical under light and dark system emulation; `/city` still resolves independently to light or dark.
 - Adjusted privacy copy to full-contrast foreground tokens after axe identified translucent text below the 4.5:1 threshold.
 - Added `w-full` to the final CTA header after the rendered check exposed intrinsic-width shrinkage that shifted the headline off-center.
@@ -42,7 +42,7 @@ The references were used as combined visual direction rather than literal produc
 
 - Measured zero document and body horizontal overflow at 360, 390, 768, 1440, and 1572 CSS pixels.
 - Confirmed the compact mobile header action, readable stacked cards, complete privacy band, and centered final CTA.
-- Confirmed landing `color-scheme` remains light and the semantic canvas/foreground/primary values are identical under light and dark system preferences.
+- Confirmed the landing's fixed color-scheme and semantic canvas/foreground/primary values are identical under light and dark system preferences.
 - Confirmed `/city` retains independent light/dark system behavior and saved theme support.
 - Confirmed smooth anchor scrolling is active only when reduced motion is not requested; reduced-motion mode makes every reveal immediately visible and leaves no reveal animations running.
 - Playwright axe checks reported no serious or critical violations across all public routes.

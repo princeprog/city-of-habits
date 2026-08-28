@@ -127,44 +127,44 @@
 }
 
 /*
- * The public landing page has its own light editorial atmosphere. Keeping the
+ * The public landing page has its own midnight editorial atmosphere. Keeping the
  * values semantic means the generated shadcn components remain untouched,
  * while the application can continue to honor the visitor's saved theme.
  */
 [data-landing-theme="light"] {
   color-scheme: light;
-  --background: oklch(0.975 0.018 85);
-  --foreground: oklch(0.23 0.025 250);
-  --card: oklch(0.995 0.006 85);
-  --card-foreground: oklch(0.23 0.025 250);
-  --popover: oklch(0.995 0.006 85);
-  --popover-foreground: oklch(0.23 0.025 250);
-  --primary: oklch(0.47 0.16 255);
-  --primary-foreground: oklch(0.985 0.006 85);
-  --secondary: oklch(0.925 0.04 240);
-  --secondary-foreground: oklch(0.25 0.035 250);
-  --muted: oklch(0.945 0.018 85);
-  --muted-foreground: oklch(0.47 0.03 250);
+  --background: oklch(0.17 0.035 250);
+  --foreground: oklch(0.94 0.018 85);
+  --card: oklch(0.215 0.035 250);
+  --card-foreground: oklch(0.94 0.018 85);
+  --popover: oklch(0.215 0.035 250);
+  --popover-foreground: oklch(0.94 0.018 85);
+  --primary: oklch(0.64 0.15 255);
+  --primary-foreground: oklch(0.18 0.03 250);
+  --secondary: oklch(0.275 0.045 242);
+  --secondary-foreground: oklch(0.92 0.02 240);
+  --muted: oklch(0.235 0.03 250);
+  --muted-foreground: oklch(0.83 0.02 85);
   --accent: oklch(0.82 0.14 78);
-  --accent-foreground: oklch(0.28 0.035 75);
-  --destructive: oklch(0.63 0.18 30);
-  --destructive-foreground: oklch(0.985 0.006 85);
-  --border: oklch(0.875 0.025 85);
-  --input: oklch(0.875 0.025 85);
-  --ring: oklch(0.54 0.14 255);
-  --chart-1: oklch(0.56 0.15 255);
+  --accent-foreground: oklch(0.2 0.03 250);
+  --destructive: oklch(0.65 0.18 30);
+  --destructive-foreground: oklch(0.94 0.018 85);
+  --border: oklch(0.34 0.035 250);
+  --input: oklch(0.34 0.035 250);
+  --ring: oklch(0.62 0.14 255);
+  --chart-1: oklch(0.64 0.15 255);
   --chart-2: oklch(0.78 0.15 78);
-  --chart-3: oklch(0.63 0.18 30);
-  --chart-4: oklch(0.68 0.13 225);
-  --chart-5: oklch(0.62 0.15 300);
-  --sidebar: oklch(0.995 0.006 85);
-  --sidebar-foreground: oklch(0.23 0.025 250);
-  --sidebar-primary: oklch(0.47 0.16 255);
-  --sidebar-primary-foreground: oklch(0.985 0.006 85);
-  --sidebar-accent: oklch(0.925 0.04 240);
-  --sidebar-accent-foreground: oklch(0.25 0.035 250);
-  --sidebar-border: oklch(0.875 0.025 85);
-  --sidebar-ring: oklch(0.54 0.14 255);
+  --chart-3: oklch(0.68 0.18 30);
+  --chart-4: oklch(0.72 0.13 225);
+  --chart-5: oklch(0.68 0.15 300);
+  --sidebar: oklch(0.205 0.035 250);
+  --sidebar-foreground: oklch(0.94 0.018 85);
+  --sidebar-primary: oklch(0.64 0.15 255);
+  --sidebar-primary-foreground: oklch(0.18 0.03 250);
+  --sidebar-accent: oklch(0.275 0.045 242);
+  --sidebar-accent-foreground: oklch(0.92 0.02 240);
+  --sidebar-border: oklch(0.34 0.035 250);
+  --sidebar-ring: oklch(0.62 0.14 255);
 }
 
 @layer base {

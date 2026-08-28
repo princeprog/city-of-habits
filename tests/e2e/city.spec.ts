@@ -51,7 +51,7 @@ test("keeps the landing page crawlable and explains the privacy promise", async 
   expect(await cityLinks.count()).toBeGreaterThanOrEqual(3);
 });
 
-test("keeps the landing palette light and exposes landing viewport metadata", async ({
+test("keeps the landing palette fixed and exposes landing viewport metadata", async ({
   page,
 }) => {
   const palettes = [] as Array<{
@@ -229,7 +229,7 @@ test("keeps the landing composition inside the viewport", async ({ page }) => {
   expect(resolvedLandingPalettes[0]).toEqual(resolvedLandingPalettes[1]);
 });
 
-test("keeps application theming independent from the light-only landing page", async ({
+test("keeps application theming independent from the fixed landing page", async ({
   page,
 }) => {
   await page.evaluate(() => localStorage.removeItem("theme"));

@@ -482,7 +482,7 @@ export function LandingPage() {
                         <CardDescription
                           className={cn(
                             "text-xs uppercase tracking-[0.18em]",
-                            isPrimary && "text-primary-foreground/70",
+                            isPrimary && "text-primary-foreground",
                           )}
                         >
                           {eyebrow}
@@ -500,7 +500,7 @@ export function LandingPage() {
                         <p
                           className={cn(
                             "max-w-xl text-sm leading-6 text-muted-foreground",
-                            isPrimary && "text-primary-foreground/75",
+                            isPrimary && "text-primary-foreground",
                           )}
                         >
                           {description}
@@ -593,7 +593,7 @@ export function LandingPage() {
               id="final-cta-title"
               className="mt-5 text-balance font-heading text-4xl leading-snug font-medium tracking-tight sm:text-7xl"
             >
-              One foundation. <span className="text-primary">A city can follow.</span>
+              One foundation. <span className="text-foreground">A city can follow.</span>
             </h2>
               <CardDescription className="mt-4 max-w-2xl text-pretty text-base sm:text-lg">
               Choose one behavior worth returning to. The streets, buildings, and
