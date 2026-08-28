@@ -52,7 +52,9 @@
 
 :root {
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -135,5 +137,11 @@
 
   body {
     @apply min-h-screen bg-background text-foreground antialiased;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }
