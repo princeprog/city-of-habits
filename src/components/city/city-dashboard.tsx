@@ -30,7 +30,6 @@ import type {
   CityMapCommand,
   CityMapCommandAction,
 } from "@/components/city/city-3d-map"
-import { Badge } from "@/components/ui/badge"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,6 +61,14 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { Progress } from "@/components/ui/progress"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
@@ -319,7 +326,14 @@ export function CityDashboard() {
           <h1 className="truncate text-lg font-semibold tracking-tight sm:text-xl">My City</h1>
           <p className="truncate text-xs text-muted-foreground sm:text-sm">A living map of your habits</p>
         </div>
-        <Badge variant="secondary" className="hidden lg:inline-flex">{atmosphereMeta}</Badge>
+        <CityStatusPopover
+          habitsCount={habits.length}
+          activeHabitsCount={activeHabits.length}
+          todayCount={todayCount}
+          atmosphere={atmosphereMeta}
+          onAddHabit={openCreateHabit}
+          onLoadSampleCity={loadSampleCity}
+        />
         <div className="order-3 flex w-full items-center gap-2 md:order-none md:ml-auto md:w-auto">
           <form
             className="min-w-0 flex-1 md:w-56 lg:w-72"
@@ -407,37 +421,6 @@ export function CityDashboard() {
               />
             }
           />
-
-          {!isArranging && <div className="absolute left-4 top-4 z-10 w-[min(22rem,calc(100%-2rem))] md:left-5 md:top-5" data-city-status-card>
-            <Card className="border-white/70 bg-white/95 shadow-lg backdrop-blur-sm">
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-center gap-4">
-                  <ProgressRing value={activeHabits.length ? Math.round((todayCount / activeHabits.length) * 100) : 0} />
-                  <div className="min-w-0">
-                    <p className="text-base font-semibold tracking-tight">{habits.length ? "Your city is alive" : "Your city is a clear plot"}</p>
-                    <p className="mt-1 text-sm text-[#69756d]">
-                      {habits.length ? `${todayCount} of ${activeHabits.length} habits checked in today` : "Add a habit to place the first building."}
-                    </p>
-                  </div>
-                </div>
-                {habits.length ? (
-                  <p className="mt-4 text-sm font-medium text-[#276d47]">
-                    Select a building on the map to inspect its rhythm.
-                  </p>
-                ) : (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Button size="sm" onClick={openCreateHabit} className="bg-[#276d47] text-white hover:bg-[#1d5a39]">
-                      Add a habit
-                      <Plus data-icon="inline-end" />
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => void loadSampleCity()}>
-                      Explore a sample city
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>}
 
           {isArranging && (
             <div className="absolute inset-x-3 bottom-3 z-30 flex justify-center sm:inset-x-5 sm:bottom-5" data-city-arrangement-toolbar>
@@ -539,18 +522,86 @@ function selectHabitByHabit(setSelectedHabitId: (id: string) => void) {
   return (habit: Habit) => setSelectedHabitId(habit.id)
 }
 
-function ProgressRing({ value }: { value: number }) {
-  const radius = 25
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference - (Math.min(100, Math.max(0, value)) / 100) * circumference
+function CityStatusPopover({
+  habitsCount,
+  activeHabitsCount,
+  todayCount,
+  atmosphere,
+  onAddHabit,
+  onLoadSampleCity,
+}: {
+  habitsCount: number
+  activeHabitsCount: number
+  todayCount: number
+  atmosphere: string
+  onAddHabit: () => void
+  onLoadSampleCity: () => Promise<void>
+}) {
+  const [open, setOpen] = useState(false)
+  const progress = activeHabitsCount
+    ? Math.round((todayCount / activeHabitsCount) * 100)
+    : 0
+  const hasHabits = habitsCount > 0
+  const progressCopy = activeHabitsCount
+    ? `${todayCount} of ${activeHabitsCount} habits checked in today`
+    : hasHabits
+      ? "No active habits to check in today"
+      : "Add a habit to place the first building."
+
   return (
-    <div className="relative size-16 shrink-0" aria-label={`${value}% of today's active habits completed`} role="img">
-      <svg viewBox="0 0 64 64" className="size-full -rotate-90" aria-hidden="true">
-        <circle cx="32" cy="32" r={radius} fill="none" stroke="#e1eae0" strokeWidth="5" />
-        <circle cx="32" cy="32" r={radius} fill="none" stroke="#398253" strokeWidth="5" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} />
-      </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold tabular-nums">{value}%</span>
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="secondary"
+            size="sm"
+            className="shrink-0"
+            aria-label={`City status: ${progress}% complete. ${progressCopy}`}
+            data-city-status-trigger
+          />
+        }
+      >
+        <span className="tabular-nums">{progress}%</span>
+        <span className="hidden lg:inline" aria-hidden="true">
+          · {activeHabitsCount ? `${todayCount}/${activeHabitsCount} today` : atmosphere}
+        </span>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-72" data-city-status-popover>
+        <PopoverHeader>
+          <PopoverTitle>{hasHabits ? "Your city is alive" : "Your city is a clear plot"}</PopoverTitle>
+          <PopoverDescription>{progressCopy}</PopoverDescription>
+        </PopoverHeader>
+        <Progress value={progress} aria-label={`${progress}% of today's active habits completed`} />
+        {hasHabits ? (
+          <p className="text-sm text-muted-foreground">
+            Select a building on the map to inspect its rhythm.
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              onClick={() => {
+                setOpen(false)
+                onAddHabit()
+              }}
+            >
+              Add a habit
+              <Plus data-icon="inline-end" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setOpen(false)
+                void onLoadSampleCity()
+              }}
+            >
+              Explore a sample city
+            </Button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
   )
 }
 

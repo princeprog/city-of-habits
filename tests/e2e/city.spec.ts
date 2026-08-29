@@ -23,6 +23,12 @@ async function readHabitPositions(page: Page) {
   });
 }
 
+async function loadSampleCity(page: Page) {
+  await page.getByRole("button", { name: /city status/i }).click();
+  await page.getByRole("button", { name: /explore a sample city/i }).click();
+  await expect(page.locator('[data-city-habit-count="6"]')).toBeVisible();
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await page.evaluate(async () => {
@@ -425,7 +431,7 @@ test("composes the city toolbar from shadcn controls", async ({ page }) => {
   const toolbar = page.locator("[data-city-toolbar]");
 
   await expect(toolbar.locator('[data-slot="sidebar-trigger"]')).toBeVisible();
-  await expect(toolbar.locator('[data-slot="badge"]')).toBeVisible();
+  await expect(toolbar.locator('[data-city-status-trigger]')).toBeVisible();
   await expect(toolbar.locator('[data-slot="input-group"]')).toBeVisible();
   await expect(toolbar.locator('[data-slot="button-group"]')).toBeVisible();
   await expect(toolbar.locator('[data-slot="dropdown-menu-trigger"]')).toBeVisible();
@@ -457,18 +463,28 @@ test("renders the immersive city workspace with the map-only layout", async ({
   await expect(page.getByRole("region", { name: "Browse buildings" })).toHaveCount(0);
   await expect(page.getByText("This week", { exact: true })).toHaveCount(0);
   await expect(page.locator('[data-city-map-surface]')).toBeVisible();
+  await expect(page.locator('[data-city-status-card]')).toHaveCount(0);
+
+  const statusTrigger = page.getByRole("button", { name: /city status/i });
+  await expect(statusTrigger).toBeVisible();
+  await expect(statusTrigger).toContainText("0%");
+  await expect(page.locator('[data-city-status-popover]')).toHaveCount(0);
+  await statusTrigger.click();
+  await expect(page.locator('[data-city-status-popover]')).toBeVisible();
+  await expect(page.getByText("Your city is a clear plot", { exact: true })).toBeVisible();
 
   await headerActions.getByRole("button", { name: "Add habit" }).click();
   await expect(page.getByRole("dialog", { name: "Build a habit" })).toBeVisible();
   await page.getByRole("button", { name: "Cancel" }).click();
   await expect(page.getByRole("dialog", { name: "Build a habit" })).toHaveCount(0);
 
-  await page.getByRole("button", { name: /explore a sample city/i }).click();
+  await loadSampleCity(page);
   await expect(page.locator('[data-city-habit-count="6"]')).toBeVisible();
   await expect(page.locator('[data-city-renderer="3d"]')).toHaveAttribute(
     "data-city-density-tier",
     "town",
   );
+  await page.getByRole("button", { name: /city status/i }).click();
   await expect(page.getByText("Your city is alive", { exact: true })).toBeVisible();
 });
 
@@ -578,7 +594,7 @@ test("keeps auto-arrangement as an explicit draft and clears concealing filters"
   page,
 }) => {
   await page.goto("/city");
-  await page.getByRole("button", { name: /explore a sample city/i }).click();
+  await loadSampleCity(page);
   const originalPositions = await readHabitPositions(page);
 
   await page.getByLabel("Search habits").fill("walk");
@@ -720,7 +736,7 @@ test("keeps city search and district filtering available on the map-only layout"
   page,
 }) => {
   await page.goto("/city");
-  await page.getByRole("button", { name: /explore a sample city/i }).click();
+  await loadSampleCity(page);
 
   await page.getByLabel("Search habits").fill("walk");
   await expect(page.locator('[data-city-query="walk"]')).toBeVisible();
@@ -748,7 +764,7 @@ test("keeps the draggable city map usable across supported breakpoints", async (
     await page.goto("/city");
 
     if (index === 0) {
-      await page.getByRole("button", { name: /explore a sample city/i }).click();
+      await loadSampleCity(page);
       await expect(page.locator('[data-city-habit-count="6"]')).toBeVisible();
     }
 
@@ -825,7 +841,7 @@ test("loads local 3D models and textures without browser errors", async ({
 
   await page.goto("/city");
   await firstModelResponse;
-  await page.getByRole("button", { name: /explore a sample city/i }).click();
+  await loadSampleCity(page);
   await expect(page.locator('[data-city-habit-count="6"]')).toBeVisible();
   await page.waitForTimeout(750);
 
