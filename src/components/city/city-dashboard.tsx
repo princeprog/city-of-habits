@@ -229,7 +229,7 @@ export function CityDashboard() {
       x: world.x + offsets[direction].x,
       z: world.z + offsets[direction].z,
     }
-    const nextWorld = findNearestValidPlot(candidate, occupied)
+    const nextWorld = findNearestValidPlot(candidate, [...occupied, world])
     if (!nextWorld) {
       setArrangementAnnouncement("No open parcel is available in that direction.")
       return
@@ -401,6 +401,7 @@ export function CityDashboard() {
                 checkIns={checkIns}
                 arranging={isArranging}
                 selectedHabitId={arrangementSelectedId}
+                lastMapCommand={mapCommand?.action}
                 onSelectHabit={selectHabitByHabit(isArranging ? setArrangementSelectedId : setSelectedHabitId)}
                 className="h-full min-h-0 rounded-none border-0 shadow-none"
               />

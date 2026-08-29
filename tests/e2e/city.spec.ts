@@ -1,5 +1,27 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+
+async function readHabitPositions(page: Page) {
+  return page.evaluate(async () => {
+    const habits = await new Promise<Array<{ id: string; position: { x: number; y: number } }>>(
+      (resolve, reject) => {
+        const request = indexedDB.open("city-of-habits");
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const database = request.result;
+          const transaction = database.transaction("habits", "readonly");
+          const getAll = transaction.objectStore("habits").getAll();
+          getAll.onerror = () => reject(getAll.error);
+          getAll.onsuccess = () => resolve(getAll.result);
+        };
+      },
+    );
+
+    return habits
+      .map(({ id, position }) => ({ id, position }))
+      .sort((first, second) => first.id.localeCompare(second.id));
+  });
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
@@ -467,7 +489,112 @@ test("creates a habit from the city modal and reveals its building", async ({
   await expect(page.locator('[data-city-habit-count="1"]')).toBeVisible();
   await expect(page.getByText("Read before bed", { exact: true })).toBeVisible();
   await expect(page.locator('[data-city-selected-habit="Read before bed"]')).toBeVisible();
-  await expect(page.locator('[data-last-map-command="focus-habit"]')).toBeVisible();
+  await expect(
+    page.locator('[data-last-map-command="focus-habit"]').first(),
+  ).toBeVisible();
+});
+
+test("arranges a building, protects drafts, saves, undoes, and persists", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/city");
+  await page.getByRole("button", { name: "Add habit" }).first().click();
+  await page.getByLabel("What do you want to repeat?").fill("Evening walk");
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByRole("button", { name: /place the foundation/i }).click();
+
+  const originalPositions = await readHabitPositions(page);
+  await page.getByRole("button", { name: "More city actions" }).click();
+  await page.getByRole("menuitem", { name: "Arrange city" }).click();
+  await expect(page.locator('[data-city-mode="immersive"][data-city-arrange-mode="true"]')).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save arrangement" })).toBeDisabled();
+
+  const accessibility = await new AxeBuilder({ page })
+    .include("[data-city-arrangement-toolbar]")
+    .analyze();
+  expect(
+    accessibility.violations.filter(
+      (violation) => violation.impact === "serious" || violation.impact === "critical",
+    ),
+  ).toEqual([]);
+
+  const canvas = page.locator('canvas[aria-label="Draggable 3D view of your living city"]');
+  if (await canvas.count()) {
+    const canvasBounds = await canvas.boundingBox();
+    expect(canvasBounds).not.toBeNull();
+    const start = {
+      x: canvasBounds!.x + canvasBounds!.width * 0.5,
+      y: canvasBounds!.y + canvasBounds!.height * 0.61,
+    };
+    await page.mouse.move(start.x, start.y);
+    await page.mouse.down();
+    await page.waitForTimeout(150);
+    if (await page.locator('[data-city-dragging-habit^="habit-"]').count()) {
+      await page.mouse.move(start.x + 120, start.y - 55, { steps: 8 });
+      await page.mouse.up();
+      await expect(page.getByRole("status")).toContainText(/moved evening walk to a valid parcel/i);
+    } else {
+      await page.mouse.up();
+      await page.getByRole("button", { name: "Move building north" }).click();
+      await expect(page.getByRole("status")).toContainText(/moved evening walk north/i);
+    }
+  } else {
+    await expect(page.locator('[data-city-renderer="accessible-svg"][data-city-arrange-mode="true"]')).toBeVisible();
+    await page.getByRole("button", { name: "Move building north" }).click();
+    await expect(page.getByRole("status")).toContainText(/moved evening walk north/i);
+  }
+  await expect(page.getByRole("button", { name: "Save arrangement" })).toBeEnabled();
+
+  await page.getByRole("button", { name: "Cancel arrangement" }).click();
+  await expect(page.getByRole("alertdialog", { name: "Discard arrangement?" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue arranging" }).click();
+  await expect(page.locator('[data-city-mode="immersive"][data-city-arrange-mode="true"]')).toBeVisible();
+
+  await page.getByRole("button", { name: "Save arrangement" }).click();
+  await expect(page.getByText("City arrangement saved.")).toBeVisible();
+  await expect.poll(async () => JSON.stringify(await readHabitPositions(page)))
+    .not.toBe(JSON.stringify(originalPositions));
+
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect.poll(async () => JSON.stringify(await readHabitPositions(page)))
+    .toBe(JSON.stringify(originalPositions));
+
+  await page.getByRole("button", { name: "More city actions" }).click();
+  await page.getByRole("menuitem", { name: "Arrange city" }).click();
+  await page.getByRole("button", { name: "Move building east" }).click();
+  await page.getByRole("button", { name: "Save arrangement" }).click();
+  const savedPositions = await readHabitPositions(page);
+  expect(savedPositions).not.toEqual(originalPositions);
+
+  await page.reload();
+  await expect(page.locator('[data-city-habit-count="1"]')).toBeVisible();
+  await expect.poll(async () => JSON.stringify(await readHabitPositions(page)))
+    .toBe(JSON.stringify(savedPositions));
+});
+
+test("keeps auto-arrangement as an explicit draft and clears concealing filters", async ({
+  page,
+}) => {
+  await page.goto("/city");
+  await page.getByRole("button", { name: /explore a sample city/i }).click();
+  const originalPositions = await readHabitPositions(page);
+
+  await page.getByLabel("Search habits").fill("walk");
+  await page.getByRole("button", { name: /show body district/i }).click();
+  await page.getByRole("button", { name: "More city actions" }).click();
+  await page.getByRole("menuitem", { name: "Arrange city" }).click();
+
+  await expect(page.locator('[data-city-mode="immersive"]')).not.toHaveAttribute("data-city-query");
+  await expect(page.locator('[data-city-mode="immersive"]')).toHaveAttribute("data-city-district", "all");
+  await page.getByRole("button", { name: "Auto-arrange city" }).click();
+  await expect(page.locator('[data-city-mode="immersive"]')).toHaveAttribute("data-city-arrangement-dirty", "true");
+  await expect(page.getByRole("button", { name: "Save arrangement" })).toBeEnabled();
+
+  await page.getByRole("button", { name: "Cancel arrangement" }).click();
+  await page.getByRole("button", { name: "Discard changes" }).click();
+  expect(await readHabitPositions(page)).toEqual(originalPositions);
 });
 
 test("opens the same creation wizard from the mobile sidebar", async ({
@@ -555,11 +682,17 @@ test("keeps the creation dialog within the viewport at supported widths", async 
   }
 });
 
-test("creates a foundation locally after the city is taken offline", async ({
+test("creates and arranges a foundation locally after the city is taken offline", async ({
   page,
 }) => {
+  test.setTimeout(90_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/city", { waitUntil: "networkidle" });
+  await expect(
+    page.locator('[data-city-renderer="3d"], [data-city-renderer="accessible-svg"]')
+      .filter({ visible: true })
+      .first(),
+  ).toBeVisible();
   await page.context().setOffline(true);
 
   try {
@@ -572,6 +705,12 @@ test("creates a foundation locally after the city is taken offline", async ({
     await expect(page.getByRole("dialog", { name: "Build a habit" })).toHaveCount(0);
     await expect(page.locator('[data-city-habit-count="1"]')).toBeVisible();
     await expect(page.locator('[data-city-selected-habit="Offline reading"]')).toBeVisible();
+
+    await page.getByRole("button", { name: "More city actions" }).click();
+    await page.getByRole("menuitem", { name: "Arrange city" }).click();
+    await page.getByRole("button", { name: "Move building east" }).click();
+    await page.getByRole("button", { name: "Save arrangement" }).click();
+    await expect(page.getByText("City arrangement saved.")).toBeVisible();
   } finally {
     await page.context().setOffline(false);
   }
@@ -594,6 +733,7 @@ test("keeps city search and district filtering available on the map-only layout"
 test("keeps the draggable city map usable across supported breakpoints", async ({
   page,
 }) => {
+  test.setTimeout(90_000);
   const viewports = [
     { width: 360, height: 800, tier: "mobile" },
     { width: 390, height: 844, tier: "mobile" },
@@ -603,9 +743,14 @@ test("keeps the draggable city map usable across supported breakpoints", async (
     { width: 1572, height: 1000, tier: "desktop" },
   ] as const;
 
-  for (const viewport of viewports) {
+  for (const [index, viewport] of viewports.entries()) {
     await page.setViewportSize(viewport);
     await page.goto("/city");
+
+    if (index === 0) {
+      await page.getByRole("button", { name: /explore a sample city/i }).click();
+      await expect(page.locator('[data-city-habit-count="6"]')).toBeVisible();
+    }
 
     const map = page.locator('[data-city-renderer="3d"]');
     const mapSurface = page.locator("[data-city-map-surface]");
@@ -628,6 +773,30 @@ test("keeps the draggable city map usable across supported breakpoints", async (
     expect(geometry.bottom).toBeGreaterThanOrEqual(geometry.viewportHeight - 1);
     expect(geometry.width).toBeGreaterThan(geometry.viewportWidth * 0.8);
     expect(geometry.height).toBeGreaterThan(geometry.viewportHeight * 0.6);
+
+    await page.getByRole("button", { name: "More city actions" }).click();
+    await page.getByRole("menuitem", { name: "Arrange city" }).click();
+    const arrangementGeometry = await page
+      .locator("[data-city-arrangement-toolbar]")
+      .evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return {
+          left: bounds.left,
+          right: bounds.right,
+          top: bounds.top,
+          bottom: bounds.bottom,
+          scrollWidth: element.scrollWidth,
+          clientWidth: element.clientWidth,
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+        };
+      });
+    expect(arrangementGeometry.left).toBeGreaterThanOrEqual(0);
+    expect(arrangementGeometry.right).toBeLessThanOrEqual(arrangementGeometry.viewportWidth + 1);
+    expect(arrangementGeometry.top).toBeGreaterThanOrEqual(0);
+    expect(arrangementGeometry.bottom).toBeLessThanOrEqual(arrangementGeometry.viewportHeight + 1);
+    expect(arrangementGeometry.scrollWidth).toBeLessThanOrEqual(arrangementGeometry.clientWidth);
+    await page.getByRole("button", { name: "Cancel arrangement" }).click({ force: true });
   }
 
   const map = page.locator('[data-city-renderer="3d"]');

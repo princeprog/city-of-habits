@@ -16,6 +16,7 @@ interface CityMapProps {
   className?: string
   arranging?: boolean
   selectedHabitId?: string
+  lastMapCommand?: string
 }
 
 function handleKeyDown(event: KeyboardEvent<SVGGElement>, onSelect: () => void) {
@@ -33,6 +34,7 @@ export function CityMap({
   className,
   arranging = false,
   selectedHabitId,
+  lastMapCommand,
 }: CityMapProps) {
   const elements = projectCity(habits, checkIns)
   const districts = Object.entries(districtCatalog) as Array<[
@@ -46,6 +48,7 @@ export function CityMap({
       className={cn("relative overflow-hidden", className)}
       data-city-renderer="accessible-svg"
       data-city-arrange-mode={arranging || undefined}
+      data-last-map-command={lastMapCommand}
     >
       <CardContent className="p-0">
         <svg viewBox="0 0 100 100" className="block h-full min-h-[25rem] w-full" role="img" aria-labelledby={`${mapId}-map-title ${mapId}-map-desc`}>

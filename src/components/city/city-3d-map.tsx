@@ -162,6 +162,7 @@ function City3DCanvas({
       data-city-renderer="3d"
       data-city-centerpiece="fountain"
       data-city-density-tier={projection.density}
+      data-city-scenery-count={Math.min(projection.scenery.length, quality.decorationLimit)}
       data-city-arrange-mode={arranging || undefined}
       data-city-dragging-habit={draggingHabitId}
       data-city-home-zoom={projection.homeFrame.zoom}
@@ -477,7 +478,7 @@ function NeighborhoodScenery({
   limit: number
 }) {
   return (
-    <group data-city-scenery-count={Math.min(items.length, limit)}>
+    <group>
       {items.slice(0, limit).map((item) => (
         <SceneryItem key={item.id} item={item} />
       ))}
