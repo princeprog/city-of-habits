@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 
-import { deriveGrowthStage, getDaysAgo, getWeekDateKeys } from "@/lib/city/rules"
+import { isValidCityPlot, toWorldPosition } from "@/lib/city/city-layout"
+import { deriveGrowthStage, getDaysAgo, getStablePosition, getWeekDateKeys } from "@/lib/city/rules"
+import type { Habit } from "@/types/city"
 
 describe("city growth projections", () => {
   it.each([
@@ -30,5 +32,26 @@ describe("city growth projections", () => {
       "2026-08-29",
       "2026-08-30",
     ])
+  })
+
+  it("places new habits on compact valid parcels without moving existing habits", () => {
+    const existing = [{
+      id: "read",
+      name: "Read",
+      district: "mind",
+      buildingType: "library",
+      targetPerWeek: 4,
+      colorToken: "sky",
+      status: "active",
+      position: { x: 31.82, y: 31.82 },
+      relatedHabitIds: [],
+      createdAt: "2026-08-01T08:00:00.000Z",
+      updatedAt: "2026-08-01T08:00:00.000Z",
+    } satisfies Habit]
+
+    const position = getStablePosition("body", existing)
+
+    expect(isValidCityPlot(toWorldPosition(position), existing.map(({ position: stored }) => toWorldPosition(stored)))).toBe(true)
+    expect(existing[0].position).toEqual({ x: 31.82, y: 31.82 })
   })
 })

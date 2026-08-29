@@ -6,6 +6,7 @@ import type {
   GrowthStage,
   Habit,
 } from "@/types/city"
+import { getCompactHabitPosition } from "@/lib/city/city-layout"
 
 export function makeId(prefix = "city") {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -113,29 +114,11 @@ export function getDistrictCounts(habits: Habit[]) {
   )
 }
 
-function positionFor(district: DistrictId, index: number): CityPosition {
-  const anchors: Record<DistrictId, CityPosition> = {
-    body: { x: 72, y: 74 },
-    mind: { x: 27, y: 30 },
-    creative: { x: 56, y: 25 },
-    connection: { x: 72, y: 49 },
-    work: { x: 48, y: 66 },
-    recovery: { x: 28, y: 70 },
-  }
-  const anchor = anchors[district]
-  const offset = (index % 3) * 8
-  return {
-    x: Math.min(88, anchor.x + (index % 2 === 0 ? offset : -offset)),
-    y: Math.min(86, anchor.y + (index % 3 === 0 ? 4 : index % 3 === 1 ? -4 : 0)),
-  }
-}
-
 export function getStablePosition(
   district: DistrictId,
   habits: Habit[]
 ): CityPosition {
-  const index = habits.filter((habit) => habit.district === district).length
-  return positionFor(district, index)
+  return getCompactHabitPosition(district, habits)
 }
 
 export function projectCity(habits: Habit[], checkIns: CheckIn[]) {
