@@ -21,6 +21,8 @@ test("creates a foundation and checks in from its detail page", async ({
     .first()
     .click();
   await page.getByLabel("What do you want to repeat?").fill("Read before bed");
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
   await page.getByRole("button", { name: /place the foundation/i }).click();
   await expect(page).toHaveURL(/\/habit\/?\?id=/);
   await page.getByRole("button", { name: /check in/i }).click();
