@@ -127,44 +127,44 @@
 }
 
 /*
- * The public landing page has its own midnight editorial atmosphere. Keeping the
+ * The public landing page has its own warm editorial atmosphere. Keeping the
  * values semantic means the generated shadcn components remain untouched,
  * while the application can continue to honor the visitor's saved theme.
  */
 [data-landing-theme="light"] {
   color-scheme: light;
-  --background: oklch(0.17 0.035 250);
-  --foreground: oklch(0.94 0.018 85);
-  --card: oklch(0.215 0.035 250);
-  --card-foreground: oklch(0.94 0.018 85);
-  --popover: oklch(0.215 0.035 250);
-  --popover-foreground: oklch(0.94 0.018 85);
-  --primary: oklch(0.64 0.15 255);
-  --primary-foreground: oklch(0.18 0.03 250);
-  --secondary: oklch(0.275 0.045 242);
-  --secondary-foreground: oklch(0.92 0.02 240);
-  --muted: oklch(0.235 0.03 250);
-  --muted-foreground: oklch(0.83 0.02 85);
-  --accent: oklch(0.82 0.14 78);
-  --accent-foreground: oklch(0.2 0.03 250);
-  --destructive: oklch(0.65 0.18 30);
-  --destructive-foreground: oklch(0.94 0.018 85);
-  --border: oklch(0.34 0.035 250);
-  --input: oklch(0.34 0.035 250);
-  --ring: oklch(0.62 0.14 255);
-  --chart-1: oklch(0.64 0.15 255);
-  --chart-2: oklch(0.78 0.15 78);
-  --chart-3: oklch(0.68 0.18 30);
-  --chart-4: oklch(0.72 0.13 225);
-  --chart-5: oklch(0.68 0.15 300);
-  --sidebar: oklch(0.205 0.035 250);
-  --sidebar-foreground: oklch(0.94 0.018 85);
-  --sidebar-primary: oklch(0.64 0.15 255);
-  --sidebar-primary-foreground: oklch(0.18 0.03 250);
-  --sidebar-accent: oklch(0.275 0.045 242);
-  --sidebar-accent-foreground: oklch(0.92 0.02 240);
-  --sidebar-border: oklch(0.34 0.035 250);
-  --sidebar-ring: oklch(0.62 0.14 255);
+  --background: oklch(0.968 0.009 95);
+  --foreground: oklch(0.24 0.03 156);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.03 156);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0.03 156);
+  --primary: oklch(0.44 0.1 157);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.94 0.02 145);
+  --secondary-foreground: oklch(0.24 0.03 156);
+  --muted: oklch(0.955 0.008 120);
+  --muted-foreground: oklch(0.52 0.015 155);
+  --accent: oklch(0.925 0.04 90);
+  --accent-foreground: oklch(0.24 0.03 156);
+  --destructive: oklch(0.56 0.14 30);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.89 0.012 120);
+  --input: oklch(0.89 0.012 120);
+  --ring: oklch(0.44 0.1 157);
+  --chart-1: oklch(0.44 0.1 157);
+  --chart-2: oklch(0.68 0.14 80);
+  --chart-3: oklch(0.57 0.12 35);
+  --chart-4: oklch(0.57 0.08 235);
+  --chart-5: oklch(0.57 0.08 305);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.24 0.03 156);
+  --sidebar-primary: oklch(0.44 0.1 157);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.94 0.02 145);
+  --sidebar-accent-foreground: oklch(0.24 0.03 156);
+  --sidebar-border: oklch(0.89 0.012 120);
+  --sidebar-ring: oklch(0.44 0.1 157);
 }
 
 @layer base {

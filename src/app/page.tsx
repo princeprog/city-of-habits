@@ -12,7 +12,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   colorScheme: "light",
-  themeColor: "#04101e",
+  themeColor: "#F7F5EF",
 }
 
 export default function Page() {

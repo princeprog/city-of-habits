@@ -3,9 +3,10 @@ import type { Metadata, Viewport } from "next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
-import { Inter } from "next/font/google"
+import { Inter, Newsreader } from "next/font/google"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+const newsreader = Newsreader({ subsets: ["latin"], variable: "--font-serif" })
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cityofhabits.vercel.app"
 const siteDescription = "A living map of your daily life. Turn recurring actions into buildings, streets, parks, and neighborhoods in a private personal city."
@@ -52,7 +53,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={inter.variable}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${inter.variable} ${newsreader.variable}`}
+    >
       <body>
         <ThemeProvider>{children}<Toaster /></ThemeProvider>
       </body>
