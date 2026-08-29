@@ -210,12 +210,61 @@ function CityMapControls({
     if (!controls || !command) return
 
     const mapCamera = get().camera as OrthographicCamera
+    let animationFrame: number | undefined
+
+    const cancelAnimation = () => {
+      if (animationFrame !== undefined) {
+        window.cancelAnimationFrame(animationFrame)
+        animationFrame = undefined
+      }
+    }
+
+    const moveCamera = (target: Vector3, position: Vector3, zoom: number) => {
+      const prefersReducedMotion =
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false
+
+      if (prefersReducedMotion) {
+        controls.target.copy(target)
+        mapCamera.position.copy(position)
+        mapCamera.zoom = zoom
+        return
+      }
+
+      const startingTarget = controls.target.clone()
+      const startingPosition = mapCamera.position.clone()
+      const startingZoom = mapCamera.zoom
+      const startedAt = performance.now()
+      const duration = 280
+
+      const tick = (now: number) => {
+        const progress = Math.min(1, (now - startedAt) / duration)
+        const eased = 1 - Math.pow(1 - progress, 3)
+        controls.target.lerpVectors(startingTarget, target, eased)
+        mapCamera.position.lerpVectors(startingPosition, position, eased)
+        mapCamera.zoom = startingZoom + (zoom - startingZoom) * eased
+        mapCamera.updateProjectionMatrix()
+        controls.update()
+        invalidate()
+
+        if (progress < 1) {
+          animationFrame = window.requestAnimationFrame(tick)
+        } else {
+          animationFrame = undefined
+        }
+      }
+
+      animationFrame = window.requestAnimationFrame(tick)
+    }
+
+    cancelAnimation()
     if (command.action === "focus-habit") {
       const building = buildings.find(({ habitId }) => habitId === command.habitId)
       if (!building) return
-      controls.target.set(building.position.x, 0, building.position.z)
-      mapCamera.position.set(building.position.x + 30, 32, building.position.z + 30)
-      mapCamera.zoom = 24
+      moveCamera(
+        new Vector3(building.position.x, 0, building.position.z),
+        new Vector3(building.position.x + 30, 32, building.position.z + 30),
+        24,
+      )
     } else if (command.action === "zoom-in") {
       mapCamera.zoom = Math.min(28, mapCamera.zoom + 2)
     } else if (command.action === "zoom-out") {
@@ -231,6 +280,8 @@ function CityMapControls({
     mapCamera.updateProjectionMatrix()
     controls.update()
     invalidate()
+
+    return cancelAnimation
   }, [buildings, command, get, invalidate])
 
   return (
