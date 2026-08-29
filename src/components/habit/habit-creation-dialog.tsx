@@ -96,7 +96,7 @@ export function HabitCreationDialog({ onCreate, onCreated }: HabitCreationDialog
         }}
       >
         <DialogContent
-          className="max-h-[calc(100dvh-1rem)] max-w-[calc(100%-1rem)] overflow-hidden p-0 sm:max-h-[calc(100dvh-3rem)] sm:max-w-3xl"
+          className="h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] max-w-[calc(100%-1rem)] overflow-hidden p-0 sm:h-[min(44rem,calc(100dvh-3rem))] sm:max-h-[calc(100dvh-3rem)] sm:max-w-3xl"
           showCloseButton
         >
           <DialogTitle className="sr-only">Build a habit</DialogTitle>
@@ -110,6 +110,7 @@ export function HabitCreationDialog({ onCreate, onCreated }: HabitCreationDialog
             onCancel={requestClose}
             onDirtyChange={setIsDirty}
             onSavingChange={setIsSaving}
+            scrollable
           />
         </DialogContent>
       </Dialog>

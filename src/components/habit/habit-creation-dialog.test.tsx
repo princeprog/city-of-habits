@@ -42,7 +42,9 @@ describe("HabitCreationDialog", () => {
     )
 
     await user.click(screen.getByRole("button", { name: "Open habit creation" }))
-    expect(screen.getByRole("dialog", { name: "Build a habit" })).toBeInTheDocument()
+    const dialog = screen.getByRole("dialog", { name: "Build a habit" })
+    expect(dialog).toBeInTheDocument()
+    expect(dialog.querySelector('[data-slot="scroll-area"]')).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "Cancel" }))
     expect(screen.queryByRole("dialog", { name: "Build a habit" })).not.toBeInTheDocument()

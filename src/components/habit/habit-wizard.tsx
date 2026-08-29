@@ -31,6 +31,8 @@ import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
+import { Spinner } from "@/components/ui/spinner"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { buildingCatalog, districtCatalog } from "@/lib/city/catalog"
@@ -64,6 +66,7 @@ export interface HabitWizardProps {
   onCancel: () => void
   onDirtyChange?: (dirty: boolean) => void
   onSavingChange?: (saving: boolean) => void
+  scrollable?: boolean
 }
 
 export function HabitWizard({
@@ -72,6 +75,7 @@ export function HabitWizard({
   onCancel,
   onDirtyChange,
   onSavingChange,
+  scrollable = false,
 }: HabitWizardProps) {
   const [step, setStep] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
@@ -126,6 +130,30 @@ export function HabitWizard({
       onSavingChange?.(false)
     }
   }
+
+  const stepContent = (
+    <>
+      {step === 0 && <IdentityStep form={form} />}
+      {step === 1 && (
+        <PlacementStep
+          form={form}
+          district={district}
+          buildingType={buildingType}
+          colorToken={colorToken}
+        />
+      )}
+      {step === 2 && (
+        <RhythmStep
+          form={form}
+          target={target}
+          name={name}
+          district={district}
+          buildingType={buildingType}
+          colorToken={colorToken}
+        />
+      )}
+    </>
+  )
 
   return (
     <div
@@ -189,27 +217,15 @@ export function HabitWizard({
         className="flex min-h-0 flex-1 flex-col"
         onSubmit={form.handleSubmit(onSubmit)}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
-          {step === 0 && <IdentityStep form={form} />}
-          {step === 1 && (
-            <PlacementStep
-              form={form}
-              district={district}
-              buildingType={buildingType}
-              colorToken={colorToken}
-            />
-          )}
-          {step === 2 && (
-            <RhythmStep
-              form={form}
-              target={target}
-              name={name}
-              district={district}
-              buildingType={buildingType}
-              colorToken={colorToken}
-            />
-          )}
-        </div>
+        {scrollable ? (
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="px-4 py-5 sm:px-6 sm:py-6">{stepContent}</div>
+          </ScrollArea>
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+            {stepContent}
+          </div>
+        )}
 
         <div className="flex flex-col-reverse gap-2 border-t bg-muted/30 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <Button
@@ -234,7 +250,7 @@ export function HabitWizard({
               </Button>
             ) : (
               <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Placing foundation…" : "Place the foundation"}
+                {isSaving ? <Spinner /> : "Place the foundation"}
                 {!isSaving && <ArrowRight data-icon="inline-end" />}
               </Button>
             )}
