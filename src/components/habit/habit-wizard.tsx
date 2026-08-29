@@ -238,13 +238,28 @@ export function HabitWizard({
           </Button>
           <div className="flex gap-2 sm:ml-auto">
             {step > 0 && (
-              <Button type="button" variant="outline" onClick={goBack} disabled={isSaving}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={(event) => {
+                  event.preventDefault()
+                  goBack()
+                }}
+                disabled={isSaving}
+              >
                 <ArrowLeft data-icon="inline-start" />
                 Back
               </Button>
             )}
             {step < steps.length - 1 ? (
-              <Button type="button" onClick={() => void goNext()} disabled={isSaving}>
+              <Button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault()
+                  void goNext()
+                }}
+                disabled={isSaving}
+              >
                 Next
                 <ArrowRight data-icon="inline-end" />
               </Button>
