@@ -5,6 +5,7 @@ import type { CheckIn, DistrictId, Habit } from "@/types/city"
 export const CITY_WORLD_SIZE = 44
 export const CITY_WORLD_LIMIT = CITY_WORLD_SIZE / 2
 export const CITY_PLOT_SPACING = 4
+export const FOUNTAIN_CLEARANCE_RADIUS = 5
 
 export interface ScenePosition {
   x: number
@@ -79,12 +80,13 @@ function resolvePlot(base: ScenePosition, occupied: ScenePosition[]) {
       x: clampWorld(base.x + offset.x * CITY_PLOT_SPACING),
       z: clampWorld(base.z + offset.z * CITY_PLOT_SPACING),
     }
+    const overlapsFountain = Math.hypot(candidate.x, candidate.z) < FOUNTAIN_CLEARANCE_RADIUS
     const hasCollision = occupied.some(
       (plot) =>
         Math.abs(plot.x - candidate.x) < CITY_PLOT_SPACING &&
         Math.abs(plot.z - candidate.z) < CITY_PLOT_SPACING,
     )
-    if (!hasCollision) return candidate
+    if (!overlapsFountain && !hasCollision) return candidate
   }
 
   return {

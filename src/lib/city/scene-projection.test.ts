@@ -43,12 +43,22 @@ describe("projectCityScene", () => {
     const secondProjection = projectCityScene(habits, [])
 
     expect(firstProjection.buildings.map(({ position }) => position)).toEqual([
-      { x: 0, z: 0 },
-      { x: 4, z: 0 },
-      { x: -4, z: 0 },
+      { x: 4, z: 4 },
+      { x: -4, z: -4 },
+      { x: 4, z: -4 },
     ])
     expect(firstProjection.buildings).toEqual(secondProjection.buildings)
     expect(habits.every(({ position }) => position.x === 50 && position.y === 50)).toBe(true)
+  })
+
+  it("keeps projected buildings outside the reserved city center", () => {
+    const centeredHabit = habit({ position: { x: 50, y: 50 } })
+
+    const scene = projectCityScene([centeredHabit], [])
+    const projectedPosition = scene.buildings[0].position
+
+    expect(Math.hypot(projectedPosition.x, projectedPosition.z)).toBeGreaterThanOrEqual(5)
+    expect(centeredHabit.position).toEqual({ x: 50, y: 50 })
   })
 
   it("keeps every building while dimming query and district mismatches", () => {

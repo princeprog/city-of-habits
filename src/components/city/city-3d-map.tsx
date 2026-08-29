@@ -21,6 +21,7 @@ import type {
 import { CITY_WORLD_LIMIT, projectCityScene } from "@/lib/city/scene-projection"
 import type { CheckIn, DistrictId, Habit } from "@/types/city"
 import { cn } from "@/lib/utils"
+import { CityFountain } from "@/components/city/city-fountain"
 
 const tileColors: Record<string, string> = {
   coral: "#d98f6e",
@@ -143,6 +144,7 @@ function City3DCanvas({
     <div
       className={cn("relative h-full min-h-0 overflow-hidden bg-[#9fbd91]", className)}
       data-city-renderer="3d"
+      data-city-centerpiece="fountain"
       data-render-tier={quality.tier}
       data-last-map-command={mapCommand?.action}
       data-city-focused-habit={mapCommand?.action === "focus-habit" ? mapCommand.habitId : undefined}
@@ -329,6 +331,7 @@ function CityScene({
       {connectors.map((connector) => (
         <CityConnector key={connector.id} connector={connector} />
       ))}
+      <CityFountain />
       {landmarks.map((landmark) => (
         <CityLandmark key={landmark.id} landmark={landmark} />
       ))}
@@ -381,18 +384,6 @@ function RoadNetwork() {
           <meshStandardMaterial color={index < 2 ? "#c7bda5" : "#d2c9b4"} roughness={0.9} />
         </mesh>
       ))}
-      <mesh position={[0, 0.17, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[3.1, 32]} />
-        <meshStandardMaterial color="#7fb18b" roughness={0.8} />
-      </mesh>
-      <mesh position={[0, 0.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[1.1, 1.6, 32]} />
-        <meshStandardMaterial color="#b8d7cf" roughness={0.55} />
-      </mesh>
-      <mesh position={[0, 0.21, 0]}>
-        <cylinderGeometry args={[0.85, 1.1, 0.2, 32]} />
-        <meshStandardMaterial color="#79a9af" roughness={0.45} />
-      </mesh>
     </group>
   )
 }
