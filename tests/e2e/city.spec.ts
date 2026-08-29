@@ -394,7 +394,7 @@ test("keeps the application headers aligned across sidebar states and viewports"
   }
 });
 
-test("renders the immersive city workspace and opens a habit inspector", async ({
+test("renders the immersive city workspace with the map-only layout", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -408,23 +408,16 @@ test("renders the immersive city workspace and opens a habit inspector", async (
   );
   await expect(page.locator('[data-city-mode="immersive"]')).toBeVisible();
   await expect(page.locator('[data-city-renderer="3d"]')).toBeVisible();
-  const buildingList = page.getByRole("region", { name: "Browse buildings" });
-  await expect(buildingList).toBeVisible();
+  await expect(page.getByRole("region", { name: "Browse buildings" })).toHaveCount(0);
+  await expect(page.getByText("This week", { exact: true })).toHaveCount(0);
+  await expect(page.locator('[data-city-map-surface]')).toBeVisible();
 
   await page.getByRole("button", { name: /explore a sample city/i }).click();
-  await expect(buildingList.getByRole("button", { name: /read for 20 minutes/i })).toBeVisible();
-  await buildingList.getByRole("button", { name: /read for 20 minutes/i }).click();
-
-  await expect(
-    page.getByRole("heading", { name: "Read for 20 minutes" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: /check in today/i }),
-  ).toBeVisible();
-  await expect(page.getByText(/local to this browser/i)).toBeVisible();
+  await expect(page.locator('[data-city-habit-count="6"]')).toBeVisible();
+  await expect(page.getByText("Your city is alive", { exact: true })).toBeVisible();
 });
 
-test("keeps city search and district filtering available without removing buildings", async ({
+test("keeps city search and district filtering available on the map-only layout", async ({
   page,
 }) => {
   await page.goto("/city");
@@ -432,13 +425,10 @@ test("keeps city search and district filtering available without removing buildi
 
   await page.getByLabel("Search habits").fill("walk");
   await expect(page.locator('[data-city-query="walk"]')).toBeVisible();
-  const buildingList = page.getByRole("region", { name: "Browse buildings" });
-  await expect(buildingList.getByRole("button", { name: /read for 20 minutes/i })).toBeVisible();
-  await expect(buildingList.getByRole("button", { name: /go for a walk/i })).toBeVisible();
 
   await page.getByRole("button", { name: /show body district/i }).click();
   await expect(page.locator('[data-city-district="body"]')).toBeVisible();
-  await expect(buildingList.getByRole("button", { name: /read for 20 minutes/i })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Browse buildings" })).toHaveCount(0);
 });
 
 test("keeps the draggable city map usable across supported breakpoints", async ({
@@ -458,8 +448,26 @@ test("keeps the draggable city map usable across supported breakpoints", async (
     await page.goto("/city");
 
     const map = page.locator('[data-city-renderer="3d"]');
+    const mapSurface = page.locator("[data-city-map-surface]");
     await expect(map).toHaveAttribute("data-render-tier", viewport.tier);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width);
+    expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(viewport.height);
+
+    const geometry = await mapSurface.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+      };
+    });
+    expect(geometry.right).toBeGreaterThanOrEqual(geometry.viewportWidth - 1);
+    expect(geometry.bottom).toBeGreaterThanOrEqual(geometry.viewportHeight - 1);
+    expect(geometry.width).toBeGreaterThan(geometry.viewportWidth * 0.8);
+    expect(geometry.height).toBeGreaterThan(geometry.viewportHeight * 0.6);
   }
 
   const map = page.locator('[data-city-renderer="3d"]');
@@ -489,9 +497,7 @@ test("loads local 3D models and textures without browser errors", async ({
   await page.goto("/city");
   await firstModelResponse;
   await page.getByRole("button", { name: /explore a sample city/i }).click();
-  await expect(
-    page.getByRole("region", { name: "Browse buildings" }).getByText("6 buildings", { exact: true }),
-  ).toBeVisible();
+  await expect(page.locator('[data-city-habit-count="6"]')).toBeVisible();
   await page.waitForTimeout(750);
 
   const textureResponse = await request.get(

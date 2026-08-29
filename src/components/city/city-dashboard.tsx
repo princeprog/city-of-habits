@@ -7,15 +7,12 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import {
   ArrowUpRight,
   Check,
-  ChevronRight,
-  CircleHelp,
   LocateFixed,
   Minus,
   MoreVertical,
   Plus,
   RotateCcw,
   Search,
-  Sparkles,
   X,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -62,18 +59,17 @@ const City3DMap = dynamic(
 const stageIndex = ["planned", "started", "growing", "established"] as const
 
 const atmosphereCopy = {
-  clear: { label: "A clear plot", description: "Your first foundation is waiting." },
-  lively: { label: "Lively today", description: "Your recent check-ins are lighting the streets." },
-  steady: { label: "Steady today", description: "The city is holding its shape." },
-  quiet: { label: "A quieter day", description: "The buildings are still here when you return." },
-  rainy: { label: "Rain over the city", description: "Progress stays built through quiet days." },
+  clear: "A clear plot",
+  lively: "Lively today",
+  steady: "Steady today",
+  quiet: "A quieter day",
+  rainy: "Rain over the city",
 } as const
 
 const districtOrder = Object.keys(districtCatalog) as DistrictId[]
 
 export function CityDashboard() {
   const router = useRouter()
-  const browseRef = useRef<HTMLDivElement>(null)
   const { habits, checkIns, hydrated, hydrate, loadSampleCity, toggleCheckIn } = useCityStore()
   const [district, setDistrict] = useState<"all" | DistrictId>("all")
   const [query, setQuery] = useState("")
@@ -94,12 +90,6 @@ export function CityDashboard() {
   const todayCount = activeHabits.filter((habit) =>
     getHabitCheckIns(habit.id, checkIns).some((checkIn) => checkIn.localDate === today),
   ).length
-  const weeklyTarget = activeHabits.reduce((sum, habit) => sum + habit.targetPerWeek, 0)
-  const weeklyProgress = activeHabits.reduce(
-    (sum, habit) => sum + getWeeklyCheckInCount(habit.id, checkIns),
-    0,
-  )
-  const progressValue = weeklyTarget ? Math.min(100, Math.round((weeklyProgress / weeklyTarget) * 100)) : 0
   const atmosphere = getAtmosphere(habits, checkIns)
   const atmosphereMeta = atmosphereCopy[atmosphere]
 
@@ -108,7 +98,6 @@ export function CityDashboard() {
     mapCommandId.current += 1
     setMapCommand({ id: mapCommandId.current, action })
   }
-  const scrollToBuildings = () => browseRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
 
   const handleCheckIn = async (habit: Habit) => {
     const result = await toggleCheckIn(habit.id)
@@ -121,7 +110,7 @@ export function CityDashboard() {
 
   return (
     <main
-      className="min-h-svh overflow-x-hidden bg-[#edf1e8] text-[#1d2b24]"
+      className="flex h-svh min-h-svh flex-col overflow-hidden bg-[#edf1e8] text-[#1d2b24]"
       data-city-mode="immersive"
       data-city-query={query || undefined}
       data-city-district={district}
@@ -137,7 +126,7 @@ export function CityDashboard() {
         </div>
         <Badge variant="outline" className="hidden border-[#d7e4d7] bg-[#f3f8f0] text-[#277047] lg:inline-flex">
           <span className="size-1.5 rounded-full bg-[#4d925d]" aria-hidden="true" />
-          {atmosphereMeta.label}
+          {atmosphereMeta}
         </Badge>
         <div className="order-3 flex w-full items-center gap-2 md:order-none md:ml-auto md:w-auto">
           <form
@@ -173,10 +162,14 @@ export function CityDashboard() {
         </div>
       </header>
 
-      <section className="relative flex min-h-[calc(100svh-4rem)] flex-col gap-3 p-3 md:gap-4 md:p-5">
-        <div className="relative min-h-[36rem] flex-1 overflow-hidden rounded-xl border border-[#d4dfd0] bg-[#9ebd8e] shadow-sm md:min-h-[40rem]">
+      <section className="relative min-h-0 flex-1 overflow-hidden">
+        <div
+          className="relative h-full min-h-0 w-full overflow-hidden bg-[#9ebd8e]"
+          data-city-map-surface
+          data-city-habit-count={habits.length}
+        >
           <City3DMap
-            className="absolute inset-0"
+            className="absolute inset-0 rounded-none"
             habits={habits}
             checkIns={checkIns}
             selectedHabitId={selectedHabitId}
@@ -189,7 +182,7 @@ export function CityDashboard() {
                 habits={habits}
                 checkIns={checkIns}
                 onSelectHabit={selectHabitByHabit(setSelectedHabitId)}
-                className="h-full min-h-[36rem] rounded-xl border-0 shadow-none md:min-h-[40rem]"
+                className="h-full min-h-0 rounded-none border-0 shadow-none"
               />
             }
           />
@@ -206,14 +199,24 @@ export function CityDashboard() {
                     </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="mt-4 flex w-full items-center justify-between text-left text-sm font-medium text-[#276d47] hover:text-[#1d5a39]"
-                  onClick={scrollToBuildings}
-                >
-                  {habits.length ? "Browse today's buildings" : "Start building your city"}
-                  <ChevronRight aria-hidden="true" className="size-4" />
-                </button>
+                {habits.length ? (
+                  <p className="mt-4 text-sm font-medium text-[#276d47]">
+                    Select a building on the map to inspect its rhythm.
+                  </p>
+                ) : (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Link
+                      href="/habit/new"
+                      className={cn(buttonVariants({ size: "sm" }), "bg-[#276d47] text-white hover:bg-[#1d5a39]")}
+                    >
+                      Add a habit
+                      <Plus data-icon="inline-end" />
+                    </Link>
+                    <Button size="sm" variant="outline" onClick={() => void loadSampleCity()}>
+                      Explore a sample city
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -253,67 +256,6 @@ export function CityDashboard() {
           </div>
         </div>
 
-        <section ref={browseRef} className="rounded-xl border border-[#dce5d9] bg-white p-4 shadow-sm sm:p-5" aria-label="Browse buildings" data-building-list>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold tracking-tight">Browse buildings</p>
-              <p className="mt-0.5 text-xs text-[#68766d]">Every building is a repeated action with a place in your city.</p>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-[#68766d]">
-              <span>{habits.length} {habits.length === 1 ? "building" : "buildings"}</span>
-              <span aria-hidden="true">·</span>
-              <span>{weeklyProgress}/{weeklyTarget || 0} this week</span>
-            </div>
-          </div>
-          {habits.length ? (
-            <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              {habits.map((habit) => {
-                const isMatch = matchesCityFilter(habit, query, district)
-                const habitCheckIns = getHabitCheckIns(habit.id, checkIns)
-                const isDone = habitCheckIns.some((checkIn) => checkIn.localDate === today)
-                const stage = getHabitStage(habit.id, checkIns)
-                return (
-                  <Button
-                    key={habit.id}
-                    type="button"
-                    variant="outline"
-                    aria-label={`${habit.name}, ${districtCatalog[habit.district].name} district`}
-                    data-building-match={isMatch ? "match" : "dimmed"}
-                    className={cn(
-                      "h-auto justify-start gap-3 border-[#dce5d9] bg-[#fbfcfa] p-3 text-left hover:bg-[#f3f8f0]",
-                      !isMatch && "opacity-45",
-                    )}
-                    onClick={() => selectHabit(habit.id)}
-                  >
-                    <BuildingIllustration type={habit.buildingType} stage={stageIndex.indexOf(stage)} color={habit.colorToken} status={habit.status} size={34} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{habit.name}</span>
-                      <span className="mt-0.5 block truncate text-xs font-normal text-[#68766d]">{districtCatalog[habit.district].name} · {stage}</span>
-                    </span>
-                    {isDone ? <Check className="size-4 text-[#347a4d]" aria-label="Checked in today" /> : <span className="size-2 rounded-full bg-[#cfd8ce]" aria-hidden="true" />}
-                  </Button>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="mt-4 flex flex-col items-start gap-3 rounded-lg border border-dashed border-[#cbdac8] bg-[#f7faf5] p-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium">Your city is ready for its first foundation.</p>
-                <p className="mt-1 text-xs text-[#68766d]">Start with one repeatable action, or explore a local sample city.</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Link href="/habit/new" className={buttonVariants({ size: "sm" })}>Add a habit <Plus data-icon="inline-end" /></Link>
-                <Button size="sm" variant="outline" onClick={() => void loadSampleCity()}>Explore a sample city</Button>
-              </div>
-            </div>
-          )}
-        </section>
-
-        <div className="grid gap-3 sm:grid-cols-3">
-          <StatCard label="This week" value={`${weeklyProgress}/${weeklyTarget || 0}`} detail="check-ins toward your rhythm" progress={progressValue} />
-          <StatCard label="Atmosphere" value={atmosphereMeta.label} detail={atmosphereMeta.description} icon={<Sparkles />} />
-          <StatCard label="Private by design" value="Local only" detail="Your city stays in this browser." icon={<CircleHelp />} />
-        </div>
       </section>
     </main>
   )
@@ -329,12 +271,6 @@ function InputGroupButtonClear({ onClear }: { onClear: () => void }) {
 
 function selectHabitByHabit(setSelectedHabitId: (id: string) => void) {
   return (habit: Habit) => setSelectedHabitId(habit.id)
-}
-
-function matchesCityFilter(habit: Habit, query: string, district: "all" | DistrictId) {
-  const normalized = query.trim().toLocaleLowerCase()
-  const queryMatches = !normalized || habit.name.toLocaleLowerCase().includes(normalized) || habit.intention?.toLocaleLowerCase().includes(normalized)
-  return Boolean(queryMatches) && (district === "all" || district === habit.district)
 }
 
 function ProgressRing({ value }: { value: number }) {
@@ -439,21 +375,8 @@ function HabitInspector({
   )
 }
 
-function StatCard({ label, value, detail, icon, progress }: { label: string; value: string; detail: string; icon?: React.ReactNode; progress?: number }) {
-  return (
-    <Card className="border-[#dce5d9] bg-white shadow-sm">
-      <CardHeader className="gap-2 p-4">
-        <div className="flex items-center justify-between gap-3"><CardDescription>{label}</CardDescription>{icon ? <span className="text-[#398253]">{icon}</span> : null}</div>
-        <CardTitle className="text-base">{value}</CardTitle>
-        {progress !== undefined && <Progress value={progress} aria-label={`${progress}% of weekly target`} />}
-        <p className="text-xs font-normal text-[#68766d]">{detail}</p>
-      </CardHeader>
-    </Card>
-  )
-}
-
 function CityMapLoading() {
-  return <div className="flex h-full min-h-[36rem] items-center justify-center rounded-xl bg-[#a7c498] text-sm font-medium text-white/90">Opening your city…</div>
+  return <div className="flex h-full min-h-0 items-center justify-center bg-[#a7c498] text-sm font-medium text-white/90">Opening your city…</div>
 }
 
 function CityDashboardSkeleton() {

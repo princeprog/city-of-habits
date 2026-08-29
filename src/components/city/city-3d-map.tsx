@@ -142,7 +142,7 @@ function City3DCanvas({
 
   return (
     <div
-      className={cn("relative h-full min-h-[34rem] overflow-hidden rounded-xl bg-[#9fbd91]", className)}
+      className={cn("relative h-full min-h-0 overflow-hidden bg-[#9fbd91]", className)}
       data-city-renderer="3d"
       data-render-tier={quality.tier}
       data-last-map-command={mapCommand?.action}
