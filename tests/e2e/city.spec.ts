@@ -396,6 +396,23 @@ test("keeps the application headers aligned across sidebar states and viewports"
   }
 });
 
+test("composes the city toolbar from shadcn controls", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/city");
+
+  const toolbar = page.locator("[data-city-toolbar]");
+
+  await expect(toolbar.locator('[data-slot="sidebar-trigger"]')).toBeVisible();
+  await expect(toolbar.locator('[data-slot="badge"]')).toBeVisible();
+  await expect(toolbar.locator('[data-slot="input-group"]')).toBeVisible();
+  await expect(toolbar.locator('[data-slot="button-group"]')).toBeVisible();
+  await expect(toolbar.locator('[data-slot="dropdown-menu-trigger"]')).toBeVisible();
+
+  await toolbar.getByRole("button", { name: "More city actions" }).click();
+  await expect(page.getByRole("menuitem", { name: "Reports" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Settings" })).toBeVisible();
+});
+
 test("renders the immersive city workspace with the map-only layout", async ({
   page,
 }) => {

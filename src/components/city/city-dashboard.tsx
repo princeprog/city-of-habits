@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import {
   ArrowUpRight,
+  ChartNoAxesColumn,
   Check,
   LocateFixed,
   Minus,
@@ -12,6 +13,7 @@ import {
   Plus,
   RotateCcw,
   Search,
+  Settings,
   X,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -33,6 +35,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   InputGroup,
   InputGroupAddon,
@@ -131,34 +140,31 @@ export function CityDashboard() {
       data-city-selected-habit={selectedHabit?.name}
     >
       <header
-        className="flex min-h-16 flex-wrap items-center gap-3 border-b border-[#dce5d9] bg-white/95 px-3 py-3 backdrop-blur md:h-16 md:flex-nowrap md:px-5"
+        className="flex min-h-16 flex-wrap items-center gap-3 border-b bg-background px-3 py-3 md:h-16 md:flex-nowrap md:px-5"
         data-city-toolbar
       >
         <SidebarTrigger className="shrink-0" />
         <div className="min-w-0">
           <h1 className="truncate text-lg font-semibold tracking-tight sm:text-xl">My City</h1>
-          <p className="truncate text-xs text-[#68766d] sm:text-sm">A living map of your habits</p>
+          <p className="truncate text-xs text-muted-foreground sm:text-sm">A living map of your habits</p>
         </div>
-        <Badge variant="outline" className="hidden border-[#d7e4d7] bg-[#f3f8f0] text-[#277047] lg:inline-flex">
-          <span className="size-1.5 rounded-full bg-[#4d925d]" aria-hidden="true" />
-          {atmosphereMeta}
-        </Badge>
+        <Badge variant="secondary" className="hidden lg:inline-flex">{atmosphereMeta}</Badge>
         <div className="order-3 flex w-full items-center gap-2 md:order-none md:ml-auto md:w-auto">
           <form
             className="min-w-0 flex-1 md:w-56 lg:w-72"
             role="search"
             onSubmit={(event) => event.preventDefault()}
           >
-            <InputGroup className="h-10 border-[#d8dfd7] bg-white shadow-none">
-              <InputGroupAddon>
-                <Search aria-hidden="true" />
-              </InputGroupAddon>
+            <InputGroup>
               <InputGroupInput
                 aria-label="Search habits"
                 placeholder="Search habits"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
+              <InputGroupAddon>
+                <Search aria-hidden="true" />
+              </InputGroupAddon>
               {query && (
                 <InputGroupAddon align="inline-end">
                   <InputGroupButtonClear onClear={() => setQuery("")} />
@@ -166,15 +172,31 @@ export function CityDashboard() {
               )}
             </InputGroup>
           </form>
-          <ButtonGroup className="gap-2" aria-label="City header actions">
-            <Button size="lg" onClick={openCreateHabit} className="h-10 bg-[#276d47] px-3 text-white hover:bg-[#1d5a39]">
+          <ButtonGroup aria-label="City header actions">
+            <Button onClick={openCreateHabit}>
               <Plus data-icon="inline-start" />
               <span className="hidden sm:inline">Add habit</span>
               <span className="sm:hidden">Add</span>
             </Button>
-            <Button variant="outline" size="icon" aria-label="More city actions" className="h-10 w-10 border-[#d8dfd7] bg-white">
-              <MoreVertical />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<Button variant="outline" size="icon" aria-label="More city actions" />}
+              >
+                <MoreVertical />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => router.push("/report")}>
+                    <ChartNoAxesColumn />
+                    Reports
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push("/settings")}>
+                    <Settings />
+                    Settings
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </ButtonGroup>
         </div>
       </header>
