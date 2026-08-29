@@ -113,6 +113,7 @@ export function LandingClosing() {
             src="/images/landing/closing-skyline.png"
             alt="Warm waterfront skyline with a bridge, trees, and varied buildings."
             fill
+            loading="eager"
             sizes="(min-width: 1280px) 93rem, 100vw"
             className="object-cover object-right"
           />
@@ -166,7 +167,7 @@ export function LandingClosing() {
                   aria-hidden="true"
                   width={32}
                   height={32}
-                  className="size-8 brightness-0 invert"
+                  className="size-8"
                 />
                 <span className="font-semibold tracking-tight">City of Habits</span>
               </Link>
@@ -174,12 +175,12 @@ export function LandingClosing() {
                 A living map for your life. Every habit you build shapes the life
                 you want.
               </p>
-              <p className="mt-6 text-xs text-primary-foreground/55">
+              <p className="mt-6 text-xs text-primary-foreground">
                 Private by design · Kept on your device
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-5">
               {Object.entries(footerLinks).map(([heading, links]) => (
                 <div key={heading}>
                   <p className="text-sm font-semibold">{heading}</p>
@@ -196,7 +197,7 @@ export function LandingClosing() {
 
             <div className="rounded-xl border border-primary-foreground/20 bg-primary-foreground/10 p-5">
               <p className="font-semibold">Keep your city close</p>
-              <p className="mt-2 text-sm leading-6 text-primary-foreground/70">
+              <p className="mt-2 text-sm leading-6 text-primary-foreground">
                 Your personal city is ready whenever you are.
               </p>
               <Link
@@ -211,7 +212,7 @@ export function LandingClosing() {
             </div>
           </div>
 
-          <div className="mt-12 flex flex-col gap-3 border-t border-primary-foreground/20 pt-6 text-xs text-primary-foreground/55 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-12 flex flex-col gap-3 border-t border-primary-foreground/20 pt-6 text-xs text-primary-foreground sm:flex-row sm:items-center sm:justify-between">
             <span>© 2026 City of Habits. All rights reserved.</span>
             <span>Built quietly, kept locally.</span>
           </div>

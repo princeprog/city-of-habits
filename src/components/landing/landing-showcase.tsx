@@ -109,6 +109,7 @@ export function LandingShowcase() {
                       alt="Top-down miniature city panorama with six colorful districts and connected streets."
                       width={1536}
                       height={1024}
+                      loading="eager"
                       sizes="(min-width: 1024px) 56vw, 100vw"
                       className="aspect-[1.8] h-auto w-full object-cover object-center"
                     />

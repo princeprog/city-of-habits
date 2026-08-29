@@ -17,11 +17,8 @@ test("creates a foundation and checks in from its detail page", async ({
   page,
 }) => {
   await page
-    .getByRole("link", { name: /enter the city/i })
+    .getByRole("link", { name: /start building your city/i })
     .first()
-    .click();
-  await page
-    .getByRole("link", { name: /build your first foundation/i })
     .click();
   await page.getByLabel("What do you want to repeat?").fill("Read before bed");
   await page.getByRole("button", { name: /place the foundation/i }).click();
@@ -41,7 +38,7 @@ test("keeps the landing page crawlable and explains the privacy promise", async 
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: /the map is yours to keep/i }),
+    page.getByRole("heading", { name: /a city that stays yours/i }),
   ).toBeVisible();
   await expect(page.getByText("No account").first()).toBeVisible();
   await expect(page.getByText("Works offline").first()).toBeVisible();
@@ -49,6 +46,34 @@ test("keeps the landing page crawlable and explains the privacy promise", async 
   await expect(
     page.getByRole("link", { name: /start building your city/i }),
   ).toHaveAttribute("href", /\/habit\/new\/?$/);
+  await expect(
+    page.getByRole("link", { name: /start building for free/i }),
+  ).toHaveAttribute("href", /\/habit\/new\/?$/);
+  await expect(
+    page.getByRole("link", { name: /explore features/i }),
+  ).toHaveAttribute("href", "#features");
+  for (const district of [
+    "Work",
+    "Mind",
+    "Body",
+    "Recovery",
+    "Connection",
+    "Creative",
+  ]) {
+    await expect(page.locator(`[data-district-label="${district}"]`)).toHaveCount(1);
+  }
+  const landingImages = page.locator('main img[src^="/images/landing/"]');
+  await expect(landingImages).toHaveCount(3);
+  await landingImages.last().scrollIntoViewIfNeeded();
+  await expect
+    .poll(() =>
+      landingImages.evaluateAll((images) =>
+        images.every((image) => (image as HTMLImageElement).naturalWidth > 0),
+      ),
+    )
+    .toBe(true);
+  const landingText = await page.locator("main").innerText();
+  expect(landingText).not.toMatch(/pricing|log\s*in|newsletter|50,000|notion|spotify|rating|stars/i);
   const cityLinks = page.locator('a[href^="/city"]');
   expect(await cityLinks.count()).toBeGreaterThanOrEqual(3);
 });
@@ -141,6 +166,12 @@ test("connects landing navigation to its sections with smooth scrolling", async 
   await expect(
     page.getByRole("link", { name: "Privacy", exact: true }).first(),
   ).toHaveAttribute("href", "#privacy");
+  await expect(
+    page.getByLabel("Main navigation").getByRole("link", { name: "Why cities", exact: true }),
+  ).toHaveAttribute("href", "#why-cities");
+  await expect(
+    page.getByLabel("Main navigation").getByRole("link", { name: "About", exact: true }),
+  ).toHaveAttribute("href", "#about");
   await expect
     .poll(() =>
       page.evaluate(
@@ -152,6 +183,23 @@ test("connects landing navigation to its sections with smooth scrolling", async 
   await page.getByRole("link", { name: "Features", exact: true }).click();
   await expect(page).toHaveURL(/#features$/);
   await expect(page.locator("#features")).toBeInViewport();
+});
+
+test("renders the landing page without browser console errors", async ({
+  page,
+}) => {
+  const consoleErrors: string[] = [];
+  const pageErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  });
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.waitForTimeout(500);
+
+  expect(consoleErrors).toEqual([]);
+  expect(pageErrors).toEqual([]);
 });
 
 test("keeps content visible and scrolling immediate when reduced motion is requested", async ({
@@ -187,6 +235,7 @@ test("keeps the landing composition inside the viewport", async ({ page }) => {
     { width: 360, height: 800 },
     { width: 390, height: 844 },
     { width: 768, height: 900 },
+    { width: 1024, height: 900 },
     { width: 1440, height: 900 },
     { width: 1572, height: 912 },
   ]) {
@@ -206,6 +255,21 @@ test("keeps the landing composition inside the viewport", async ({ page }) => {
     expect(overflow.document).toBeLessThanOrEqual(0);
     expect(overflow.body).toBeLessThanOrEqual(0);
   }
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const districtGeometry = await page.locator("[data-district-label]").evaluateAll((labels) =>
+    labels.map((label) => {
+      const bounds = label.getBoundingClientRect();
+      return {
+        visible: getComputedStyle(label).display !== "none",
+        inViewport: bounds.left >= 0 && bounds.right <= window.innerWidth,
+        hasSize: bounds.width > 0 && bounds.height > 0,
+      };
+    }),
+  );
+  expect(districtGeometry).toHaveLength(6);
+  expect(districtGeometry.every(({ visible, inViewport, hasSize }) => visible && inViewport && hasSize)).toBe(true);
 
   const resolvedLandingPalettes: Array<{
     background: string;
@@ -393,6 +457,7 @@ test("renders every public route without serious accessibility violations", asyn
         )
         .toBe(true);
     }
+    await page.waitForTimeout(800);
     const results = await new AxeBuilder({ page }).analyze();
     expect(
       results.violations.filter(

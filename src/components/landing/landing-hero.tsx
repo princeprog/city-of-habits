@@ -104,7 +104,15 @@ export function LandingHero() {
                 priority
               />
               {districtLabels.map(({ name, level, className }) => (
-                <Card key={name} size="sm" className={cn("pointer-events-none absolute hidden min-w-20 bg-card/95 shadow-md sm:block", className)}>
+                <Card
+                  key={name}
+                  data-district-label={name}
+                  size="sm"
+                  className={cn(
+                    "pointer-events-none absolute hidden min-w-20 bg-card/95 shadow-md sm:block",
+                    className,
+                  )}
+                >
                   <CardHeader className="gap-0 p-2.5">
                     <CardTitle className="text-xs">{name}</CardTitle>
                     <CardDescription className="text-[0.65rem]">Level {level}</CardDescription>

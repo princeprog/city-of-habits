@@ -1,60 +1,46 @@
-# Midnight Civic Landing Page Design QA
+# Reference-Faithful Landing Page Design QA
 
-## Visual sources
+## Visual source
 
-- Hero composition and floating detail cards: `C:\Users\ALPRIN~1\AppData\Local\Temp\codex-clipboard-41af5fdd-98a6-4597-9f65-b6636813be51.png` (1024 x 768)
-- Product showcase and bento rhythm: `C:\Users\ALPRIN~1\AppData\Local\Temp\codex-clipboard-1919a792-969e-4c93-a20e-98f24c467e84.png` (1024 x 1843)
-- Repeated feature-card rhythm: `C:\Users\ALPRIN~1\AppData\Local\Temp\codex-clipboard-93b47ef8-923d-4414-beee-e9f20676afe7.png` (1024 x 1402)
-- Final CTA and visual footer: `C:\Users\ALPRIN~1\AppData\Local\Temp\codex-clipboard-357d2bed-b34a-4c1b-bd79-9ed321e10019.png` (1024 x 1352)
+- Supplied City of Habits reference screenshot from the implementation brief.
+- Comparison captures: `outputs/landing-page-final-desktop.png` at 1440 x 900 and `outputs/landing-page-final-mobile.png` at 390 x 844.
+- The final capture was taken after scrolling through the page so reveal content and lazy-loaded artwork were settled.
 
-The references were used as combined visual direction rather than literal product copies. Their fictional pricing, integrations, testimonials, and brand assets remain excluded.
+## Art direction
 
-## Implementation evidence
+- Hero: original generated warm daylight isometric city with six districts and no embedded copy.
+- Showcase: original generated wide top-down city panorama for the static dashboard preview.
+- CTA: original generated waterfront skyline with left-side negative space for readable copy.
+- All three assets use miniature cream, green, blue, terracotta, and lilac buildings without logos or watermarks.
 
-- Desktop full page: `C:\Users\Al Prince\Documents\Products\City of Habits\outputs\landing-page-desktop.png` (1440 x 5703 rendered pixels)
-- Mobile full page: `C:\Users\Al Prince\Documents\Products\City of Habits\outputs\landing-page-mobile.png` (390 x 6938 rendered pixels)
-- Borderless hero follow-up: `C:\Users\Al Prince\Documents\Products\City of Habits\outputs\landing-hero-borderless.png` (1572 x 912 rendered pixels)
-- CSS viewports: 1440 x 900 desktop, 390 x 844 mobile, and 1572 x 912 annotation follow-up.
-- Runtime state: fixed midnight landing scope with reveal animations completed before full-page capture.
+## Visual review
 
-## Visual direction and corrections
-
-### Midnight Civic system
-
-- Added a landing-scoped semantic palette: midnight navy canvas, warm ivory text, cobalt blue primary actions, blue-black surfaces, marigold emphasis, and restrained coral/sky/violet district signals.
-- Kept the sample city artwork as the visual anchor and reused its existing signal colors instead of adding new assets.
-- Preserved Inter, Base Nova shadcn primitives, Lucide icons, default radii, and semantic token composition.
-
-### Composition pass
-
-- Reframed the hero as a borderless, centered editorial introduction with the city preview as a dark visual stage and three overlapping local-first promise cards.
-- Added a six-district legend below the hero, a four-step journey grid, a 12-column asymmetric feature bento, a cobalt privacy band, and a marigold final CTA/footer.
-- Converted major landing titles to native semantic headings so the visual hierarchy is also available to assistive technology.
-
-### Responsive and accessibility pass
-
-- Kept the landing's fixed `color-scheme: light` contract and matched its viewport theme color to the midnight canvas while leaving application theme preferences untouched.
-- Confirmed the landing palette is identical under light and dark system emulation; `/city` still resolves independently to light or dark.
-- Adjusted privacy copy to full-contrast foreground tokens after axe identified translucent text below the 4.5:1 threshold.
-- Added `w-full` to the final CTA header after the rendered check exposed intrinsic-width shrinkage that shifted the headline off-center.
+- Warm ivory landing canvas and charcoal typography match the supplied light reference while keeping the private app routes theme-aware.
+- Header, split hero, floating district labels, three factual promise cards, principles strip, open three-step journey, and static dashboard preview are present.
+- Dashboard preview includes six buildings/districts, realistic local activity, weekly progress, and a lively atmosphere state without IndexedDB reads.
+- Proof section uses only factual promises: Progress stays built, Records stay local, and Backups stay yours.
+- Skyline CTA and dark-green footer use working internal links; newsletter capture, pricing, login, ratings, portraits, endorsements, and user-count claims are absent.
+- Mobile layout stacks the hero, promise cards, journey, dashboard, proof cards, CTA, and footer without horizontal overflow.
 
 ## Responsive, theme, motion, and accessibility checks
 
-- Measured zero document and body horizontal overflow at 360, 390, 768, 1440, and 1572 CSS pixels.
-- Confirmed the compact mobile header action, readable stacked cards, complete privacy band, and centered final CTA.
-- Confirmed the landing's fixed color-scheme and semantic canvas/foreground/primary values are identical under light and dark system preferences.
-- Confirmed `/city` retains independent light/dark system behavior and saved theme support.
-- Confirmed smooth anchor scrolling is active only when reduced motion is not requested; reduced-motion mode makes every reveal immediately visible and leaves no reveal animations running.
-- Playwright axe checks reported no serious or critical violations across all public routes.
-- Browser console probes returned no warnings or page errors at desktop or mobile viewports.
+- Checked 360, 390, 768, 1024, 1440, and 1572 CSS pixel widths for document/body overflow.
+- Checked desktop district labels for viewport containment and non-zero layout boxes.
+- Confirmed the landing uses `color-scheme: light` and the same warm palette under light and dark system emulation.
+- Confirmed `/city` remains independently light/dark under system emulation.
+- Confirmed smooth anchor scrolling is active for normal motion and reduced-motion mode switches to immediate scrolling.
+- Confirmed reduced-motion mode makes every reveal visible without active reveal animations.
+- Confirmed generated landing images load and expose descriptive alt text.
+- Playwright axe checks report no serious or critical violations across all public routes.
+- Browser console and page-error probes report no errors on the landing page.
 
 ## Verification
 
 - `pnpm lint` — passed
 - `pnpm typecheck` — passed
-- `pnpm test` — 22 passed across 6 test files
-- `pnpm build` — passed; 15 static routes generated
-- `pnpm test:e2e -- --workers=1` — 33 passed across Chromium, Firefox, and WebKit
+- `pnpm test` — passed
+- `pnpm build` — passed
+- `pnpm test:e2e -- --workers=1` — passed
 
 ## Result
 
