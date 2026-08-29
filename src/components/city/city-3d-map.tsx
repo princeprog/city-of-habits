@@ -21,7 +21,7 @@ import type {
   ScenePosition,
 } from "@/lib/city/scene-projection"
 import { CITY_WORLD_LIMIT, projectCityScene } from "@/lib/city/scene-projection"
-import type { CheckIn, DistrictId, Habit } from "@/types/city"
+import type { CheckIn, CityPosition, DistrictId, Habit } from "@/types/city"
 import { cn } from "@/lib/utils"
 import { CityFountain } from "@/components/city/city-fountain"
 import { CityRoadNetwork } from "@/components/city/city-road-network"
@@ -106,6 +106,8 @@ export interface City3DMapProps {
   selectedHabitId?: string
   query?: string
   district?: DistrictId | "all"
+  positionOverrides?: ReadonlyMap<string, CityPosition>
+  arranging?: boolean
   onSelectHabit?: (habitId: string) => void
   mapCommand?: CityMapCommand
   fallback?: React.ReactNode
@@ -132,6 +134,8 @@ function City3DCanvas({
   selectedHabitId,
   query,
   district = "all",
+  positionOverrides,
+  arranging = false,
   onSelectHabit,
   mapCommand,
   fallback,
@@ -139,8 +143,8 @@ function City3DCanvas({
 }: City3DMapProps) {
   const quality = useCityQuality()
   const projection = useMemo(
-    () => projectCityScene(habits, checkIns, { query, district }),
-    [checkIns, district, habits, query],
+    () => projectCityScene(habits, checkIns, { query, district, positionOverrides }),
+    [checkIns, district, habits, positionOverrides, query],
   )
 
   return (
@@ -149,6 +153,7 @@ function City3DCanvas({
       data-city-renderer="3d"
       data-city-centerpiece="fountain"
       data-city-density-tier={projection.density}
+      data-city-arrange-mode={arranging || undefined}
       data-city-home-zoom={projection.homeFrame.zoom}
       data-render-tier={quality.tier}
       data-last-map-command={mapCommand?.action}
@@ -205,11 +210,12 @@ function City3DCanvas({
           buildings={projection.buildings}
           homeFrame={projection.homeFrame}
           quality={quality}
+          enabled={!arranging}
         />
       </Canvas>
       <div className="pointer-events-none absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 text-[11px] font-medium text-white/90 drop-shadow-sm sm:inset-x-5">
-        <span>Drag to explore</span>
-        <span className="hidden sm:inline">Scroll to zoom · Right-drag to rotate</span>
+        <span>{arranging ? "Drag a building to move it" : "Drag to explore"}</span>
+        <span className="hidden sm:inline">{arranging ? "Map navigation is paused" : "Scroll to zoom · Right-drag to rotate"}</span>
       </div>
     </div>
   )
@@ -220,11 +226,13 @@ function CityMapControls({
   buildings,
   homeFrame,
   quality,
+  enabled,
 }: {
   command?: CityMapCommand
   buildings: ProjectedCityBuilding[]
   homeFrame: CityHomeFrame
   quality: CityRenderQuality
+  enabled: boolean
 }) {
   const { get, invalidate } = useThree()
   const controlsRef = useRef<React.ElementRef<typeof MapControls>>(null)
@@ -324,6 +332,7 @@ function CityMapControls({
     <MapControls
       ref={controlsRef}
       makeDefault
+      enabled={enabled}
       enableDamping={quality.damping}
       dampingFactor={quality.damping ? 0.08 : 0}
       enablePan

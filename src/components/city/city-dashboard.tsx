@@ -8,6 +8,7 @@ import {
   ChartNoAxesColumn,
   Check,
   LocateFixed,
+  Move3D,
   Minus,
   MoreVertical,
   Plus,
@@ -20,12 +21,26 @@ import { toast } from "sonner"
 
 import { CityMap } from "@/components/city/city-map"
 import { BuildingIllustration } from "@/components/city/building-illustration"
+import {
+  CityArrangementToolbar,
+  type CityNudgeDirection,
+} from "@/components/city/city-arrangement-toolbar"
 import { HabitCreationDialog, useHabitCreation } from "@/components/habit/habit-creation-dialog"
 import type {
   CityMapCommand,
   CityMapCommandAction,
 } from "@/components/city/city-3d-map"
 import { Badge } from "@/components/ui/badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { ButtonGroup } from "@/components/ui/button-group"
 import {
@@ -52,6 +67,13 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { districtCatalog } from "@/lib/city/catalog"
 import {
+  CITY_PLOT_SPACING,
+  findNearestValidPlot,
+  getCompactArrangement,
+  toStoredPosition,
+  toWorldPosition,
+} from "@/lib/city/city-layout"
+import {
   getAtmosphere,
   getHabitCheckIns,
   getHabitStage,
@@ -59,7 +81,7 @@ import {
   getWeeklyCheckInCount,
 } from "@/lib/city/rules"
 import { useCityStore } from "@/stores/city-store"
-import type { DistrictId, Habit } from "@/types/city"
+import type { CityPosition, DistrictId, Habit } from "@/types/city"
 
 const City3DMap = dynamic(
   () => import("@/components/city/city-3d-map").then((module) => module.City3DMap),
@@ -81,12 +103,19 @@ const districtOrder = Object.keys(districtCatalog) as DistrictId[]
 export function CityDashboard() {
   const router = useRouter()
   const { openCreateHabit } = useHabitCreation()
-  const { habits, checkIns, hydrated, hydrate, loadSampleCity, toggleCheckIn } = useCityStore()
+  const { habits, checkIns, hydrated, hydrate, loadSampleCity, toggleCheckIn, updateHabitPositions } = useCityStore()
   const [district, setDistrict] = useState<"all" | DistrictId>("all")
   const [query, setQuery] = useState("")
   const [selectedHabitId, setSelectedHabitId] = useState<string>()
   const mapCommandId = useRef(0)
   const [mapCommand, setMapCommand] = useState<CityMapCommand>()
+  const [isArranging, setIsArranging] = useState(false)
+  const [arrangementOriginal, setArrangementOriginal] = useState<Map<string, CityPosition>>(new Map())
+  const [arrangementDraft, setArrangementDraft] = useState<Map<string, CityPosition>>(new Map())
+  const [arrangementSelectedId, setArrangementSelectedId] = useState<string>()
+  const [arrangementSaving, setArrangementSaving] = useState(false)
+  const [discardArrangementOpen, setDiscardArrangementOpen] = useState(false)
+  const [arrangementAnnouncement, setArrangementAnnouncement] = useState("")
 
   useEffect(() => {
     if (!hydrated) void hydrate()
@@ -103,6 +132,17 @@ export function CityDashboard() {
   ).length
   const atmosphere = getAtmosphere(habits, checkIns)
   const atmosphereMeta = atmosphereCopy[atmosphere]
+  const arrangementDirty = useMemo(
+    () => positionsDiffer(arrangementOriginal, arrangementDraft),
+    [arrangementDraft, arrangementOriginal],
+  )
+  const fallbackHabits = useMemo(
+    () => habits.map((habit) => ({
+      ...habit,
+      position: arrangementDraft.get(habit.id) ?? habit.position,
+    })),
+    [arrangementDraft, habits],
+  )
 
   const selectHabit = (habitId: string) => setSelectedHabitId(habitId)
   const issueMapCommand = (action: CityMapCommandAction) => {
@@ -129,6 +169,123 @@ export function CityDashboard() {
     })
   }
 
+  const beginArrangement = () => {
+    if (habits.length === 0) return
+    const positions = new Map(habits.map((habit) => [habit.id, { ...habit.position }]))
+    const firstId = selectedHabitId && positions.has(selectedHabitId)
+      ? selectedHabitId
+      : habits[0].id
+    setQuery("")
+    setDistrict("all")
+    setSelectedHabitId(undefined)
+    setArrangementOriginal(positions)
+    setArrangementDraft(new Map(positions))
+    setArrangementSelectedId(firstId)
+    setArrangementAnnouncement("Arrange mode started. Map navigation is paused.")
+    setIsArranging(true)
+    issueMapCommand("reset")
+  }
+
+  const finishArrangement = () => {
+    setIsArranging(false)
+    setArrangementOriginal(new Map())
+    setArrangementDraft(new Map())
+    setArrangementSelectedId(undefined)
+    setDiscardArrangementOpen(false)
+    setArrangementAnnouncement("")
+  }
+
+  const requestCancelArrangement = () => {
+    if (arrangementDirty) {
+      setDiscardArrangementOpen(true)
+    } else {
+      finishArrangement()
+    }
+  }
+
+  const handleAutoArrange = () => {
+    const next = getCompactArrangement(habits)
+    setArrangementDraft(next)
+    setArrangementSelectedId((current) => current ?? habits[0]?.id)
+    setArrangementAnnouncement("Compact arrangement previewed. Save to keep these positions.")
+    issueMapCommand("reset")
+  }
+
+  const handleNudge = (direction: CityNudgeDirection) => {
+    if (!arrangementSelectedId) return
+    const current = arrangementDraft.get(arrangementSelectedId)
+    if (!current) return
+    const world = toWorldPosition(current)
+    const offsets: Record<CityNudgeDirection, { x: number; z: number }> = {
+      north: { x: 0, z: -CITY_PLOT_SPACING },
+      east: { x: CITY_PLOT_SPACING, z: 0 },
+      south: { x: 0, z: CITY_PLOT_SPACING },
+      west: { x: -CITY_PLOT_SPACING, z: 0 },
+    }
+    const occupied = habits
+      .filter((habit) => habit.id !== arrangementSelectedId)
+      .map((habit) => toWorldPosition(arrangementDraft.get(habit.id) ?? habit.position))
+    const candidate = {
+      x: world.x + offsets[direction].x,
+      z: world.z + offsets[direction].z,
+    }
+    const nextWorld = findNearestValidPlot(candidate, occupied)
+    if (!nextWorld) {
+      setArrangementAnnouncement("No open parcel is available in that direction.")
+      return
+    }
+    const next = new Map(arrangementDraft)
+    next.set(arrangementSelectedId, toStoredPosition(nextWorld))
+    setArrangementDraft(next)
+    setArrangementAnnouncement(`Moved ${habits.find((habit) => habit.id === arrangementSelectedId)?.name ?? "building"} ${direction}.`)
+  }
+
+  const handleSaveArrangement = async () => {
+    const changes = habits
+      .filter((habit) => {
+        const position = arrangementDraft.get(habit.id)
+        return position && !positionsEqual(position, habit.position)
+      })
+      .map((habit) => ({ id: habit.id, position: arrangementDraft.get(habit.id)! }))
+    if (changes.length === 0) return
+
+    const previous = changes.map(({ id }) => ({ id, position: { ...arrangementOriginal.get(id)! } }))
+    setArrangementSaving(true)
+    try {
+      await updateHabitPositions(changes)
+      finishArrangement()
+      issueMapCommand("reset")
+      toast.success("City arrangement saved.", {
+        action: {
+          label: "Undo",
+          onClick: () => {
+            void updateHabitPositions(previous).then(() => {
+              issueMapCommand("reset")
+              toast.success("Previous arrangement restored.")
+            }).catch(() => toast.error("The previous arrangement could not be restored."))
+          },
+        },
+      })
+    } catch {
+      toast.error("The arrangement could not be saved.", {
+        description: "Your draft is still open. Try again when you are ready.",
+      })
+    } finally {
+      setArrangementSaving(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!isArranging) return
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || discardArrangementOpen) return
+      event.preventDefault()
+      requestCancelArrangement()
+    }
+    window.addEventListener("keydown", handleEscape)
+    return () => window.removeEventListener("keydown", handleEscape)
+  })
+
   if (!hydrated) return <CityDashboardSkeleton />
 
   return (
@@ -138,6 +295,8 @@ export function CityDashboard() {
       data-city-query={query || undefined}
       data-city-district={district}
       data-city-selected-habit={selectedHabit?.name}
+      data-city-arrange-mode={isArranging || undefined}
+      data-city-arrangement-dirty={isArranging ? arrangementDirty : undefined}
     >
       <header
         className="flex min-h-16 flex-wrap items-center gap-3 border-b bg-background px-3 py-3 md:h-16 md:flex-nowrap md:px-5"
@@ -190,6 +349,10 @@ export function CityDashboard() {
                     <ChartNoAxesColumn />
                     Reports
                   </DropdownMenuItem>
+                  <DropdownMenuItem disabled={habits.length === 0} onClick={beginArrangement}>
+                    <Move3D />
+                    Arrange city
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => router.push("/settings")}>
                     <Settings />
                     Settings
@@ -214,11 +377,13 @@ export function CityDashboard() {
             selectedHabitId={selectedHabitId}
             query={query}
             district={district}
+            positionOverrides={isArranging ? arrangementDraft : undefined}
+            arranging={isArranging}
             onSelectHabit={selectHabit}
             mapCommand={mapCommand}
             fallback={
               <CityMap
-                habits={habits}
+                habits={fallbackHabits}
                 checkIns={checkIns}
                 onSelectHabit={selectHabitByHabit(setSelectedHabitId)}
                 className="h-full min-h-0 rounded-none border-0 shadow-none"
@@ -226,7 +391,7 @@ export function CityDashboard() {
             }
           />
 
-          <div className="absolute left-4 top-4 z-10 w-[min(22rem,calc(100%-2rem))] md:left-5 md:top-5" data-city-status-card>
+          {!isArranging && <div className="absolute left-4 top-4 z-10 w-[min(22rem,calc(100%-2rem))] md:left-5 md:top-5" data-city-status-card>
             <Card className="border-white/70 bg-white/95 shadow-lg backdrop-blur-sm">
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-center gap-4">
@@ -255,9 +420,27 @@ export function CityDashboard() {
                 )}
               </CardContent>
             </Card>
-          </div>
+          </div>}
 
-          <div className="absolute bottom-4 left-4 z-10 hidden flex-col gap-1 rounded-lg border border-white/70 bg-white/90 p-1 shadow-lg backdrop-blur-sm md:flex md:bottom-5 md:left-5" aria-label="District filters">
+          {isArranging && (
+            <div className="absolute inset-x-3 bottom-3 z-30 flex justify-center sm:inset-x-5 sm:bottom-5" data-city-arrangement-toolbar>
+              <CityArrangementToolbar
+                habits={habits}
+                selectedHabitId={arrangementSelectedId}
+                dirty={arrangementDirty}
+                saving={arrangementSaving}
+                onSelectHabit={setArrangementSelectedId}
+                onNudge={handleNudge}
+                onAutoArrange={handleAutoArrange}
+                onCancel={requestCancelArrangement}
+                onSave={() => void handleSaveArrangement()}
+              />
+            </div>
+          )}
+
+          <p className="sr-only" role="status" aria-live="polite">{arrangementAnnouncement}</p>
+
+          {!isArranging && <div className="absolute bottom-4 left-4 z-10 hidden flex-col gap-1 rounded-lg border border-white/70 bg-white/90 p-1 shadow-lg backdrop-blur-sm md:flex md:bottom-5 md:left-5" aria-label="District filters">
             <DistrictButton value="all" selected={district === "all"} onClick={() => setDistrict("all")} label="Show all districts" />
             {districtOrder.map((id) => (
               <DistrictButton
@@ -268,9 +451,9 @@ export function CityDashboard() {
                 label={`Show ${districtCatalog[id].name.toLocaleLowerCase()} district`}
               />
             ))}
-          </div>
+          </div>}
 
-          {selectedHabit ? (
+          {!isArranging && (selectedHabit ? (
             <HabitInspector
               habit={selectedHabit}
               checkIns={checkIns}
@@ -282,19 +465,49 @@ export function CityDashboard() {
             <div className="pointer-events-none absolute bottom-5 right-5 z-10 hidden max-w-[15rem] text-right text-xs font-medium text-white drop-shadow-md lg:block">
               Select a building to see its habit and check-in rhythm.
             </div>
-          )}
+          ))}
 
-          <div className="pointer-events-auto absolute bottom-4 right-4 z-10 flex items-center gap-1 rounded-lg border border-white/70 bg-white/90 p-1 shadow-lg backdrop-blur-sm" aria-label="Map controls">
+          {!isArranging && <div className="pointer-events-auto absolute bottom-4 right-4 z-10 flex items-center gap-1 rounded-lg border border-white/70 bg-white/90 p-1 shadow-lg backdrop-blur-sm" aria-label="Map controls">
             <Button variant="ghost" size="icon-sm" aria-label="Zoom in" onClick={() => issueMapCommand("zoom-in")}><Plus /></Button>
             <Button variant="ghost" size="icon-sm" aria-label="Zoom out" onClick={() => issueMapCommand("zoom-out")}><Minus /></Button>
             <Button variant="ghost" size="icon-sm" aria-label="Center city" onClick={() => issueMapCommand("center")}><LocateFixed /></Button>
             <Button variant="ghost" size="icon-sm" aria-label="Reset map" onClick={() => issueMapCommand("reset")}><RotateCcw /></Button>
-          </div>
+          </div>}
         </div>
         <HabitCreationDialog onCreated={handleHabitCreated} />
+        <AlertDialog open={discardArrangementOpen} onOpenChange={setDiscardArrangementOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Discard arrangement?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Your building positions will return to where they were before Arrange mode.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Continue arranging</AlertDialogCancel>
+              <AlertDialogAction onClick={finishArrangement}>Discard changes</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </section>
     </main>
   )
+}
+
+function positionsEqual(first: CityPosition, second: CityPosition) {
+  return first.x === second.x && first.y === second.y
+}
+
+function positionsDiffer(
+  first: ReadonlyMap<string, CityPosition>,
+  second: ReadonlyMap<string, CityPosition>,
+) {
+  if (first.size !== second.size) return true
+  for (const [id, position] of first) {
+    const candidate = second.get(id)
+    if (!candidate || !positionsEqual(position, candidate)) return true
+  }
+  return false
 }
 
 function InputGroupButtonClear({ onClear }: { onClear: () => void }) {
