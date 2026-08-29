@@ -240,6 +240,18 @@ export function CityDashboard() {
     setArrangementAnnouncement(`Moved ${habits.find((habit) => habit.id === arrangementSelectedId)?.name ?? "building"} ${direction}.`)
   }
 
+  const handleMoveHabit = (habitId: string, position: CityPosition) => {
+    setArrangementSelectedId(habitId)
+    setArrangementDraft((current) => {
+      const previous = current.get(habitId)
+      if (previous && positionsEqual(previous, position)) return current
+      const next = new Map(current)
+      next.set(habitId, position)
+      return next
+    })
+    setArrangementAnnouncement(`Moved ${habits.find((habit) => habit.id === habitId)?.name ?? "building"} to a valid parcel.`)
+  }
+
   const handleSaveArrangement = async () => {
     const changes = habits
       .filter((habit) => {
@@ -379,6 +391,8 @@ export function CityDashboard() {
             district={district}
             positionOverrides={isArranging ? arrangementDraft : undefined}
             arranging={isArranging}
+            onMoveHabit={handleMoveHabit}
+            onArrangementIssue={setArrangementAnnouncement}
             onSelectHabit={selectHabit}
             mapCommand={mapCommand}
             fallback={

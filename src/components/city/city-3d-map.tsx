@@ -2,13 +2,17 @@
 
 import { Canvas, type ThreeEvent, useThree } from "@react-three/fiber"
 import { MapControls, useGLTF } from "@react-three/drei"
-import { Box3, Group, Vector3 } from "three"
+import { Box3, Group, Plane, Vector3 } from "three"
 import type { OrthographicCamera } from "three"
 import * as React from "react"
 import { Suspense, useEffect, useMemo, useRef, useState } from "react"
 
 import { getDecorationModelPath } from "@/lib/city/scene-assets"
-import type { CityHomeFrame } from "@/lib/city/city-layout"
+import {
+  findNearestValidPlot,
+  toStoredPosition,
+  type CityHomeFrame,
+} from "@/lib/city/city-layout"
 import type { ProjectedCityScenery } from "@/lib/city/city-scenery"
 import {
   getBrowserCityRenderQuality,
@@ -109,6 +113,8 @@ export interface City3DMapProps {
   positionOverrides?: ReadonlyMap<string, CityPosition>
   arranging?: boolean
   onSelectHabit?: (habitId: string) => void
+  onMoveHabit?: (habitId: string, position: CityPosition) => void
+  onArrangementIssue?: (message: string) => void
   mapCommand?: CityMapCommand
   fallback?: React.ReactNode
   className?: string
@@ -137,11 +143,14 @@ function City3DCanvas({
   positionOverrides,
   arranging = false,
   onSelectHabit,
+  onMoveHabit,
+  onArrangementIssue,
   mapCommand,
   fallback,
   className,
 }: City3DMapProps) {
   const quality = useCityQuality()
+  const [draggingHabitId, setDraggingHabitId] = useState<string>()
   const projection = useMemo(
     () => projectCityScene(habits, checkIns, { query, district, positionOverrides }),
     [checkIns, district, habits, positionOverrides, query],
@@ -154,6 +163,7 @@ function City3DCanvas({
       data-city-centerpiece="fountain"
       data-city-density-tier={projection.density}
       data-city-arrange-mode={arranging || undefined}
+      data-city-dragging-habit={draggingHabitId}
       data-city-home-zoom={projection.homeFrame.zoom}
       data-render-tier={quality.tier}
       data-last-map-command={mapCommand?.action}
@@ -203,6 +213,21 @@ function City3DCanvas({
             quality={quality}
             selectedHabitId={selectedHabitId}
             onSelectHabit={onSelectHabit}
+            arranging={arranging}
+            draggingHabitId={draggingHabitId}
+            onDragStart={setDraggingHabitId}
+            onDragEnd={() => setDraggingHabitId(undefined)}
+            onDragMove={(habitId, candidate) => {
+              const occupied = projection.buildings
+                .filter((building) => building.habitId !== habitId)
+                .map((building) => building.position)
+              const snapped = findNearestValidPlot(candidate, occupied)
+              if (!snapped) {
+                onArrangementIssue?.("No valid parcel is available here. The building stayed in its last valid position.")
+                return
+              }
+              onMoveHabit?.(habitId, toStoredPosition(snapped))
+            }}
           />
         </Suspense>
         <CityMapControls
@@ -359,6 +384,11 @@ function CityScene({
   quality,
   selectedHabitId,
   onSelectHabit,
+  arranging,
+  draggingHabitId,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
 }: {
   buildings: ProjectedCityBuilding[]
   connectors: ProjectedCityConnector[]
@@ -367,6 +397,11 @@ function CityScene({
   quality: CityRenderQuality
   selectedHabitId?: string
   onSelectHabit?: (habitId: string) => void
+  arranging: boolean
+  draggingHabitId?: string
+  onDragStart: (habitId: string) => void
+  onDragMove: (habitId: string, position: ScenePosition) => void
+  onDragEnd: () => void
 }) {
   return (
     <group>
@@ -387,6 +422,11 @@ function CityScene({
           building={building}
           selected={building.habitId === selectedHabitId}
           onSelect={onSelectHabit}
+          arranging={arranging}
+          dragging={building.habitId === draggingHabitId}
+          onDragStart={onDragStart}
+          onDragMove={onDragMove}
+          onDragEnd={onDragEnd}
         />
       ))}
     </group>
@@ -533,10 +573,20 @@ function CityBuilding({
   building,
   selected,
   onSelect,
+  arranging,
+  dragging,
+  onDragStart,
+  onDragMove,
+  onDragEnd,
 }: {
   building: ProjectedCityBuilding
   selected: boolean
   onSelect?: (habitId: string) => void
+  arranging: boolean
+  dragging: boolean
+  onDragStart: (habitId: string) => void
+  onDragMove: (habitId: string, position: ScenePosition) => void
+  onDragEnd: () => void
 }) {
   const [hovered, setHovered] = useState(false)
   const color = tileColors[building.colorToken] ?? districtColors[building.district]
@@ -545,11 +595,45 @@ function CityBuilding({
     event.stopPropagation()
     onSelect?.(building.habitId)
   }
+  const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
+    if (!arranging) return
+    event.stopPropagation()
+    const pointerTarget = event.target as EventTarget & {
+      setPointerCapture(pointerId: number): void
+    }
+    pointerTarget.setPointerCapture(event.pointerId)
+    onSelect?.(building.habitId)
+    onDragStart(building.habitId)
+  }
+  const handlePointerMove = (event: ThreeEvent<PointerEvent>) => {
+    if (!arranging || !dragging) return
+    event.stopPropagation()
+    const intersection = event.ray.intersectPlane(
+      new Plane(new Vector3(0, 1, 0), 0),
+      new Vector3(),
+    )
+    if (intersection) {
+      onDragMove(building.habitId, { x: intersection.x, z: intersection.z })
+    }
+  }
+  const handlePointerUp = (event: ThreeEvent<PointerEvent>) => {
+    if (!arranging || !dragging) return
+    event.stopPropagation()
+    const pointerTarget = event.target as EventTarget & {
+      releasePointerCapture(pointerId: number): void
+    }
+    pointerTarget.releasePointerCapture(event.pointerId)
+    onDragEnd()
+  }
 
   return (
     <group
       position={[building.position.x, 0, building.position.z]}
       onClick={handleSelect}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
       onPointerOver={(event) => {
         event.stopPropagation()
         setHovered(true)
@@ -557,6 +641,12 @@ function CityBuilding({
       onPointerOut={() => setHovered(false)}
       userData={{ habitId: building.habitId }}
     >
+      {arranging && selected && (
+        <mesh position={[0, 0.035, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 4]}>
+          <ringGeometry args={[1.55, 2, 4]} />
+          <meshBasicMaterial color={dragging ? "#ffffff" : color} transparent opacity={0.42} depthWrite={false} />
+        </mesh>
+      )}
       <mesh position={[0, 0.09, 0]} rotation={[-Math.PI / 2, 0, Math.PI / 4]} receiveShadow>
         <ringGeometry args={[1.22, 1.36, 4]} />
         <meshBasicMaterial color={selected || hovered ? "#fff8d6" : color} transparent opacity={selected || hovered ? 0.98 : 0.6 * opacity} />
