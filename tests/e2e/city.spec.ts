@@ -402,10 +402,13 @@ test("renders the immersive city workspace with the map-only layout", async ({
 
   await expect(page.getByRole("heading", { name: "My City" })).toBeVisible();
   await expect(page.getByLabel("Search habits")).toBeVisible();
-  await expect(page.locator('[data-city-toolbar]').getByRole("link", { name: "Add habit" })).toHaveAttribute(
+  const headerActions = page.getByRole("group", { name: "City header actions" });
+  await expect(headerActions).toBeVisible();
+  await expect(headerActions.getByRole("link", { name: "Add habit" })).toHaveAttribute(
     "href",
     /\/habit\/new\/?$/,
   );
+  await expect(headerActions.getByRole("button", { name: "More city actions" })).toBeVisible();
   await expect(page.locator('[data-city-mode="immersive"]')).toBeVisible();
   await expect(page.locator('[data-city-renderer="3d"]')).toBeVisible();
   await expect(page.getByRole("region", { name: "Browse buildings" })).toHaveCount(0);

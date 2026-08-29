@@ -25,6 +25,7 @@ import type {
 } from "@/components/city/city-3d-map"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { ButtonGroup } from "@/components/ui/button-group"
 import {
   Card,
   CardContent,
@@ -151,14 +152,16 @@ export function CityDashboard() {
               )}
             </InputGroup>
           </form>
-          <Link href="/habit/new" className={cn(buttonVariants({ size: "lg" }), "h-10 bg-[#276d47] px-3 text-white hover:bg-[#1d5a39]") }>
-            <Plus data-icon="inline-start" />
-            <span className="hidden sm:inline">Add habit</span>
-            <span className="sm:hidden">Add</span>
-          </Link>
-          <Button variant="outline" size="icon" aria-label="City actions" className="h-10 w-10 border-[#d8dfd7] bg-white">
-            <MoreVertical />
-          </Button>
+          <ButtonGroup className="gap-2" aria-label="City header actions">
+            <Link href="/habit/new" className={cn(buttonVariants({ size: "lg" }), "h-10 bg-[#276d47] px-3 text-white hover:bg-[#1d5a39]") }>
+              <Plus data-icon="inline-start" />
+              <span className="hidden sm:inline">Add habit</span>
+              <span className="sm:hidden">Add</span>
+            </Link>
+            <Button variant="outline" size="icon" aria-label="More city actions" className="h-10 w-10 border-[#d8dfd7] bg-white">
+              <MoreVertical />
+            </Button>
+          </ButtonGroup>
         </div>
       </header>
 
