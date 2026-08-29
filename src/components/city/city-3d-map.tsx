@@ -110,10 +110,9 @@ export interface City3DMapProps {
 
 export type CityMapCommandAction = "zoom-in" | "zoom-out" | "center" | "reset"
 
-export interface CityMapCommand {
-  id: number
-  action: CityMapCommandAction
-}
+export type CityMapCommand =
+  | { id: number; action: CityMapCommandAction }
+  | { id: number; action: "focus-habit"; habitId: string }
 
 export function City3DMap({ fallback, ...props }: City3DMapProps) {
   return (
@@ -146,6 +145,7 @@ function City3DCanvas({
       data-city-renderer="3d"
       data-render-tier={quality.tier}
       data-last-map-command={mapCommand?.action}
+      data-city-focused-habit={mapCommand?.action === "focus-habit" ? mapCommand.habitId : undefined}
     >
       <Canvas
         orthographic
@@ -183,7 +183,7 @@ function City3DCanvas({
             onSelectHabit={onSelectHabit}
           />
         </Suspense>
-        <CityMapControls command={mapCommand} quality={quality} />
+        <CityMapControls command={mapCommand} buildings={projection.buildings} quality={quality} />
       </Canvas>
       <div className="pointer-events-none absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 text-[11px] font-medium text-white/90 drop-shadow-sm sm:inset-x-5">
         <span>Drag to explore</span>
@@ -195,9 +195,11 @@ function City3DCanvas({
 
 function CityMapControls({
   command,
+  buildings,
   quality,
 }: {
   command?: CityMapCommand
+  buildings: ProjectedCityBuilding[]
   quality: CityRenderQuality
 }) {
   const { get, invalidate } = useThree()
@@ -208,7 +210,13 @@ function CityMapControls({
     if (!controls || !command) return
 
     const mapCamera = get().camera as OrthographicCamera
-    if (command.action === "zoom-in") {
+    if (command.action === "focus-habit") {
+      const building = buildings.find(({ habitId }) => habitId === command.habitId)
+      if (!building) return
+      controls.target.set(building.position.x, 0, building.position.z)
+      mapCamera.position.set(building.position.x + 30, 32, building.position.z + 30)
+      mapCamera.zoom = 24
+    } else if (command.action === "zoom-in") {
       mapCamera.zoom = Math.min(28, mapCamera.zoom + 2)
     } else if (command.action === "zoom-out") {
       mapCamera.zoom = Math.max(11, mapCamera.zoom - 2)
@@ -223,7 +231,7 @@ function CityMapControls({
     mapCamera.updateProjectionMatrix()
     controls.update()
     invalidate()
-  }, [command, get, invalidate])
+  }, [buildings, command, get, invalidate])
 
   return (
     <MapControls

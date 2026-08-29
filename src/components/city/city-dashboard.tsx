@@ -108,9 +108,16 @@ export function CityDashboard() {
     })
   }
 
-  const handleHabitCreated = () => {
+  const handleHabitCreated = (habit: Habit) => {
     setQuery("")
     setDistrict("all")
+    setSelectedHabitId(habit.id)
+    mapCommandId.current += 1
+    setMapCommand({
+      id: mapCommandId.current,
+      action: "focus-habit",
+      habitId: habit.id,
+    })
   }
 
   if (!hydrated) return <CityDashboardSkeleton />
@@ -121,6 +128,7 @@ export function CityDashboard() {
       data-city-mode="immersive"
       data-city-query={query || undefined}
       data-city-district={district}
+      data-city-selected-habit={selectedHabit?.name}
     >
       <header
         className="flex min-h-16 flex-wrap items-center gap-3 border-b border-[#dce5d9] bg-white/95 px-3 py-3 backdrop-blur md:h-16 md:flex-nowrap md:px-5"
