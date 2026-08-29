@@ -18,24 +18,28 @@ describe("city scene assets", () => {
     ])
 
     expect(getBuildingModelPath("tower", 0)).toBe(
-      "/models/city/building-skyscraper-c.glb",
+      "/models/city/commercial/building-skyscraper-c.glb",
     )
     expect(getBuildingModelPath("tower", 1)).toBe(
-      "/models/city/building-j.glb",
+      "/models/city/commercial/building-j.glb",
     )
     expect(getBuildingModelPath("tower", 4)).toBe(
-      "/models/city/building-skyscraper-c.glb",
+      "/models/city/commercial/building-skyscraper-c.glb",
     )
   })
 
   it("exposes only same-origin decoration paths", () => {
     expect(getDecorationModelPath("tree-large")).toBe(
-      "/models/city/tree-large.glb",
+      "/models/city/suburban/tree-large.glb",
     )
     const paths = [
       ...Object.values(CITY_MODEL_PATHS.buildings).flat(),
       ...Object.values(CITY_MODEL_PATHS.decorations),
     ]
-    expect(paths.every((path) => path.startsWith("/models/city/") && path.endsWith(".glb"))).toBe(true)
+    expect(
+      paths.every((path) =>
+        /^\/models\/city\/(commercial|industrial|roads|suburban)\/.+\.glb$/.test(path),
+      ),
+    ).toBe(true)
   })
 })

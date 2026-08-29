@@ -1,13 +1,17 @@
 "use client"
 
-import { Canvas, type ThreeEvent } from "@react-three/fiber"
+import { Canvas, type ThreeEvent, useThree } from "@react-three/fiber"
 import { MapControls, useGLTF } from "@react-three/drei"
 import { Box3, Group, Vector3 } from "three"
+import type { OrthographicCamera } from "three"
 import * as React from "react"
-import { Suspense, useEffect, useMemo, useState } from "react"
+import { Suspense, useEffect, useMemo, useRef, useState } from "react"
 
 import { getDecorationModelPath } from "@/lib/city/scene-assets"
-import { getCityRenderQuality, type CityRenderQuality } from "@/lib/city/city-quality"
+import {
+  getBrowserCityRenderQuality,
+  type CityRenderQuality,
+} from "@/lib/city/city-quality"
 import type {
   ProjectedCityBuilding,
   ProjectedCityConnector,
@@ -99,8 +103,16 @@ export interface City3DMapProps {
   query?: string
   district?: DistrictId | "all"
   onSelectHabit?: (habitId: string) => void
+  mapCommand?: CityMapCommand
   fallback?: React.ReactNode
   className?: string
+}
+
+export type CityMapCommandAction = "zoom-in" | "zoom-out" | "center" | "reset"
+
+export interface CityMapCommand {
+  id: number
+  action: CityMapCommandAction
 }
 
 export function City3DMap({ fallback, ...props }: City3DMapProps) {
@@ -118,6 +130,7 @@ function City3DCanvas({
   query,
   district = "all",
   onSelectHabit,
+  mapCommand,
   fallback,
   className,
 }: City3DMapProps) {
@@ -132,6 +145,7 @@ function City3DCanvas({
       className={cn("relative h-full min-h-[34rem] overflow-hidden rounded-xl bg-[#9fbd91]", className)}
       data-city-renderer="3d"
       data-render-tier={quality.tier}
+      data-last-map-command={mapCommand?.action}
     >
       <Canvas
         orthographic
@@ -169,29 +183,67 @@ function City3DCanvas({
             onSelectHabit={onSelectHabit}
           />
         </Suspense>
-        <MapControls
-          makeDefault
-          enableDamping={quality.damping}
-          dampingFactor={quality.damping ? 0.08 : 0}
-          enablePan
-          enableRotate
-          enableZoom
-          maxAzimuthAngle={Math.PI / 3}
-          maxDistance={65}
-          maxPolarAngle={Math.PI / 2.25}
-          maxZoom={28}
-          minAzimuthAngle={-Math.PI / 3}
-          minDistance={20}
-          minPolarAngle={Math.PI / 3.5}
-          minZoom={11}
-          screenSpacePanning={false}
-        />
+        <CityMapControls command={mapCommand} quality={quality} />
       </Canvas>
       <div className="pointer-events-none absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 text-[11px] font-medium text-white/90 drop-shadow-sm sm:inset-x-5">
         <span>Drag to explore</span>
         <span className="hidden sm:inline">Scroll to zoom · Right-drag to rotate</span>
       </div>
     </div>
+  )
+}
+
+function CityMapControls({
+  command,
+  quality,
+}: {
+  command?: CityMapCommand
+  quality: CityRenderQuality
+}) {
+  const { get, invalidate } = useThree()
+  const controlsRef = useRef<React.ElementRef<typeof MapControls>>(null)
+
+  useEffect(() => {
+    const controls = controlsRef.current
+    if (!controls || !command) return
+
+    const mapCamera = get().camera as OrthographicCamera
+    if (command.action === "zoom-in") {
+      mapCamera.zoom = Math.min(28, mapCamera.zoom + 2)
+    } else if (command.action === "zoom-out") {
+      mapCamera.zoom = Math.max(11, mapCamera.zoom - 2)
+    } else {
+      controls.target.set(0, 0, 0)
+      if (command.action === "reset") {
+        mapCamera.position.set(30, 32, 30)
+        mapCamera.zoom = 20
+      }
+    }
+
+    mapCamera.updateProjectionMatrix()
+    controls.update()
+    invalidate()
+  }, [command, get, invalidate])
+
+  return (
+    <MapControls
+      ref={controlsRef}
+      makeDefault
+      enableDamping={quality.damping}
+      dampingFactor={quality.damping ? 0.08 : 0}
+      enablePan
+      enableRotate
+      enableZoom
+      maxAzimuthAngle={Math.PI / 3}
+      maxDistance={65}
+      maxPolarAngle={Math.PI / 2.25}
+      maxZoom={28}
+      minAzimuthAngle={-Math.PI / 3}
+      minDistance={20}
+      minPolarAngle={Math.PI / 3.5}
+      minZoom={11}
+      screenSpacePanning={false}
+    />
   )
 }
 
@@ -465,24 +517,20 @@ function SceneLoading() {
 
 function useCityQuality() {
   const [quality, setQuality] = useState<CityRenderQuality>(() =>
-    getCityRenderQuality({ width: 1024, devicePixelRatio: 1 }),
+    getBrowserCityRenderQuality(),
   )
 
   useEffect(() => {
-    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)")
     const update = () => {
-      setQuality(getCityRenderQuality({
-        width: window.innerWidth,
-        devicePixelRatio: window.devicePixelRatio,
-        prefersReducedMotion: motionQuery.matches,
-      }))
+      setQuality(getBrowserCityRenderQuality())
     }
     update()
     window.addEventListener("resize", update)
-    motionQuery.addEventListener("change", update)
+    motionQuery?.addEventListener("change", update)
     return () => {
       window.removeEventListener("resize", update)
-      motionQuery.removeEventListener("change", update)
+      motionQuery?.removeEventListener("change", update)
     }
   }, [])
 

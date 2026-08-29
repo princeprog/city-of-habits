@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { getCityRenderQuality } from "@/lib/city/city-quality"
+import {
+  getBrowserCityRenderQuality,
+  getCityRenderQuality,
+} from "@/lib/city/city-quality"
 
 describe("getCityRenderQuality", () => {
   it("uses the full SimCity presentation on large screens", () => {
@@ -35,5 +38,30 @@ describe("getCityRenderQuality", () => {
       damping: true,
       decorationLimit: 24,
     })
+  })
+
+  it("reads the browser snapshot before the first canvas render", () => {
+    const originalWidth = window.innerWidth
+    const originalDevicePixelRatio = window.devicePixelRatio
+    const originalMatchMedia = window.matchMedia
+
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 390 })
+    Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: 3 })
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: () => ({ matches: true }) as MediaQueryList,
+    })
+
+    expect(getBrowserCityRenderQuality()).toEqual({
+      tier: "mobile",
+      pixelRatio: 1,
+      shadows: false,
+      damping: false,
+      decorationLimit: 12,
+    })
+
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: originalWidth })
+    Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: originalDevicePixelRatio })
+    Object.defineProperty(window, "matchMedia", { configurable: true, value: originalMatchMedia })
   })
 })

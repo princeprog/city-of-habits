@@ -22,6 +22,10 @@ import { toast } from "sonner"
 
 import { CityMap } from "@/components/city/city-map"
 import { BuildingIllustration } from "@/components/city/building-illustration"
+import type {
+  CityMapCommand,
+  CityMapCommandAction,
+} from "@/components/city/city-3d-map"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -74,6 +78,8 @@ export function CityDashboard() {
   const [district, setDistrict] = useState<"all" | DistrictId>("all")
   const [query, setQuery] = useState("")
   const [selectedHabitId, setSelectedHabitId] = useState<string>()
+  const mapCommandId = useRef(0)
+  const [mapCommand, setMapCommand] = useState<CityMapCommand>()
 
   useEffect(() => {
     if (!hydrated) void hydrate()
@@ -98,6 +104,10 @@ export function CityDashboard() {
   const atmosphereMeta = atmosphereCopy[atmosphere]
 
   const selectHabit = (habitId: string) => setSelectedHabitId(habitId)
+  const issueMapCommand = (action: CityMapCommandAction) => {
+    mapCommandId.current += 1
+    setMapCommand({ id: mapCommandId.current, action })
+  }
   const scrollToBuildings = () => browseRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
 
   const handleCheckIn = async (habit: Habit) => {
@@ -173,6 +183,7 @@ export function CityDashboard() {
             query={query}
             district={district}
             onSelectHabit={selectHabit}
+            mapCommand={mapCommand}
             fallback={
               <CityMap
                 habits={habits}
@@ -234,11 +245,11 @@ export function CityDashboard() {
             </div>
           )}
 
-          <div className="pointer-events-none absolute bottom-4 right-4 z-10 flex items-center gap-1 rounded-lg border border-white/70 bg-white/90 p-1 shadow-lg backdrop-blur-sm" aria-label="Map controls">
-            <Button variant="ghost" size="icon-sm" aria-label="Zoom in"><Plus /></Button>
-            <Button variant="ghost" size="icon-sm" aria-label="Zoom out"><Minus /></Button>
-            <Button variant="ghost" size="icon-sm" aria-label="Center city"><LocateFixed /></Button>
-            <Button variant="ghost" size="icon-sm" aria-label="Reset map"><RotateCcw /></Button>
+          <div className="pointer-events-auto absolute bottom-4 right-4 z-10 flex items-center gap-1 rounded-lg border border-white/70 bg-white/90 p-1 shadow-lg backdrop-blur-sm" aria-label="Map controls">
+            <Button variant="ghost" size="icon-sm" aria-label="Zoom in" onClick={() => issueMapCommand("zoom-in")}><Plus /></Button>
+            <Button variant="ghost" size="icon-sm" aria-label="Zoom out" onClick={() => issueMapCommand("zoom-out")}><Minus /></Button>
+            <Button variant="ghost" size="icon-sm" aria-label="Center city" onClick={() => issueMapCommand("center")}><LocateFixed /></Button>
+            <Button variant="ghost" size="icon-sm" aria-label="Reset map" onClick={() => issueMapCommand("reset")}><RotateCcw /></Button>
           </div>
         </div>
 

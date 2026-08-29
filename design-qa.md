@@ -1,38 +1,36 @@
-# Reference-Faithful Landing Page Design QA
+# Interactive 3D City Design QA
 
-## Visual source
+## Reference and intent
 
-- Supplied City of Habits reference screenshot from the implementation brief.
-- Comparison captures: `outputs/landing-page-final-desktop.png` at 1440 x 900 and `outputs/landing-page-final-mobile.png` at 390 x 844.
-- The final capture was taken after scrolling through the page so reveal content and lazy-loaded artwork were settled.
+- Visual reference: the supplied SimCity-inspired city workspace screenshot.
+- The implementation keeps the reference's composition: a narrow city-only sidebar, a compact top toolbar, a large playable map, a progress/status card, a selected-building inspector, and a lower building browser.
+- Buildings stay anchored to the user's persisted habit positions. Dragging pans the camera, zoom changes the view scale, and limited rotation provides a game-like view without changing local data.
 
-## Art direction
+## Renderer and art direction
 
-- Hero: original generated warm daylight isometric city with six districts and no embedded copy.
-- Showcase: original generated wide top-down city panorama for the static dashboard preview.
-- CTA: original generated waterfront skyline with left-side negative space for readable copy.
-- All three assets use miniature cream, green, blue, terracotta, and lilac buildings without logos or watermarks.
+- React Three Fiber, Drei, and Three.js provide the interactive orthographic scene.
+- The scene uses 22 local Kenney CC0 GLB models, organized with their matching pack-specific `Textures/colormap.png` files under `public/models/city/`.
+- `public/models/city/THIRD-PARTY-LICENSES.txt` records the asset attribution.
+- Buildings use clean low-poly/isometric geometry with restrained color accents, roads, trees, paths, a roundabout, connectors, and landmark props. No generated or external image is used for the interactive map.
+- The accessible SVG city map remains available as the Canvas fallback, while the semantic building browser exposes every habit independently of WebGL.
 
-## Visual review
+## Product behavior
 
-- Warm ivory landing canvas and charcoal typography match the supplied light reference while keeping the private app routes theme-aware.
-- Header, split hero, floating district labels, three factual promise cards, principles strip, open three-step journey, and static dashboard preview are present.
-- Dashboard preview includes six buildings/districts, realistic local activity, weekly progress, and a lively atmosphere state without IndexedDB reads.
-- Proof section uses only factual promises: Progress stays built, Records stay local, and Backups stay yours.
-- Skyline CTA and dark-green footer use working internal links; newsletter capture, pricing, login, ratings, portraits, endorsements, and user-count claims are absent.
-- Mobile layout stacks the hero, promise cards, journey, dashboard, proof cards, CTA, and footer without horizontal overflow.
+- Habit data is projected into six districts: Body, Mind, Creative, Connection, Work, and Recovery.
+- Building choice and duplicate-plot resolution are deterministic; filtering dims non-matching buildings without removing them.
+- Search, district filters, building selection, today's check-in/undo, and View habit use the existing local store and route contracts.
+- Camera controls are available by pointer/touch drag, wheel/pinch zoom, limited rotation, and the four accessible toolbar controls: Zoom in, Zoom out, Center city, and Reset map.
+- The sample city remains an explicit action and does not seed IndexedDB until the visitor chooses it.
 
-## Responsive, theme, motion, and accessibility checks
+## Responsive, accessibility, and performance checks
 
-- Checked 360, 390, 768, 1024, 1440, and 1572 CSS pixel widths for document/body overflow.
-- Checked desktop district labels for viewport containment and non-zero layout boxes.
-- Confirmed the landing uses `color-scheme: light` and the same warm palette under light and dark system emulation.
-- Confirmed `/city` remains independently light/dark under system emulation.
-- Confirmed smooth anchor scrolling is active for normal motion and reduced-motion mode switches to immediate scrolling.
-- Confirmed reduced-motion mode makes every reveal visible without active reveal animations.
-- Confirmed generated landing images load and expose descriptive alt text.
-- Playwright axe checks report no serious or critical violations across all public routes.
-- Browser console and page-error probes report no errors on the landing page.
+- Verified city layout at 360, 390, 768, 1024, 1440, and 1572 CSS pixels with no horizontal overflow.
+- Adaptive quality uses mobile, tablet, and desktop tiers; device pixel ratio, shadows, damping, and decoration count are capped by viewport and reduced-motion preference.
+- Reduced motion is read before the first Canvas render and disables camera damping and scene reveal motion.
+- The city shell exposes labeled navigation, search, district controls, map controls, a labeled draggable Canvas, and a keyboard-accessible building list.
+- A direct in-app browser check confirmed meaningful content, no Next.js error overlay, no horizontal overflow, colored local models, and no browser console errors after the matching textures were packaged.
+- The service worker uses the versioned `city-3d-models-v1` cache for same-origin city `.glb` files and matching `Textures/colormap.png` dependencies, with a bounded one-year expiration policy.
+- No IndexedDB schema, backup schema, backend, analytics, or user-data transmission changes were introduced.
 
 ## Verification
 
@@ -41,6 +39,7 @@
 - `pnpm test` — passed
 - `pnpm build` — passed
 - `pnpm test:e2e -- --workers=1` — passed
+- Browser visual and console check — passed
 
 ## Result
 

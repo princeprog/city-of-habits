@@ -45,3 +45,16 @@ export function getCityRenderQuality({
     decorationLimit: 42,
   }
 }
+
+export function getBrowserCityRenderQuality(): CityRenderQuality {
+  if (typeof window === "undefined") {
+    return getCityRenderQuality({ width: 1024, devicePixelRatio: 1 })
+  }
+
+  return getCityRenderQuality({
+    width: window.innerWidth,
+    devicePixelRatio: window.devicePixelRatio,
+    prefersReducedMotion:
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
+  })
+}

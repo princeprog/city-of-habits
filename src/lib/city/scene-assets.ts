@@ -14,30 +14,33 @@ type DecorationId =
   | "tree-large"
   | "tree-small"
 
-const model = (fileName: string) => `/models/city/${fileName}.glb`
+type CityModelPack = "commercial" | "industrial" | "roads" | "suburban"
+
+const model = (pack: CityModelPack, fileName: string) =>
+  `/models/city/${pack}/${fileName}.glb`
 
 export const CITY_MODEL_PATHS = {
   buildings: {
-    park: [model("building-type-k"), model("building-type-o")],
-    library: [model("building-type-o"), model("building-type-t")],
-    workshop: [model("building-g"), model("building-h")],
-    bridge: [model("building-a"), model("building-j")],
-    tower: [model("building-skyscraper-c"), model("building-j")],
-    lighthouse: [model("building-t"), model("building-q")],
+    park: [model("suburban", "building-type-k"), model("suburban", "building-type-o")],
+    library: [model("suburban", "building-type-o"), model("suburban", "building-type-t")],
+    workshop: [model("industrial", "building-g"), model("industrial", "building-h")],
+    bridge: [model("commercial", "building-a"), model("commercial", "building-j")],
+    tower: [model("commercial", "building-skyscraper-c"), model("commercial", "building-j")],
+    lighthouse: [model("industrial", "building-t"), model("industrial", "building-q")],
   } satisfies Record<BuildingType, string[]>,
   decorations: {
-    "bridge-pillar": model("bridge-pillar"),
-    "chimney-basic": model("chimney-basic"),
-    "light-square": model("light-square"),
-    "path-long": model("path-long"),
-    planter: model("planter"),
-    "road-bend": model("road-bend"),
-    "road-bridge": model("road-bridge"),
-    "road-crossroad": model("road-crossroad"),
-    "road-roundabout": model("road-roundabout"),
-    "road-straight": model("road-straight"),
-    "tree-large": model("tree-large"),
-    "tree-small": model("tree-small"),
+    "bridge-pillar": model("roads", "bridge-pillar"),
+    "chimney-basic": model("industrial", "chimney-basic"),
+    "light-square": model("roads", "light-square"),
+    "path-long": model("suburban", "path-long"),
+    planter: model("suburban", "planter"),
+    "road-bend": model("roads", "road-bend"),
+    "road-bridge": model("roads", "road-bridge"),
+    "road-crossroad": model("roads", "road-crossroad"),
+    "road-roundabout": model("roads", "road-roundabout"),
+    "road-straight": model("roads", "road-straight"),
+    "tree-large": model("suburban", "tree-large"),
+    "tree-small": model("suburban", "tree-small"),
   } satisfies Record<DecorationId, string>,
 } as const
 
