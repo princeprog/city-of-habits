@@ -399,7 +399,9 @@ export function CityDashboard() {
               <CityMap
                 habits={fallbackHabits}
                 checkIns={checkIns}
-                onSelectHabit={selectHabitByHabit(setSelectedHabitId)}
+                arranging={isArranging}
+                selectedHabitId={arrangementSelectedId}
+                onSelectHabit={selectHabitByHabit(isArranging ? setArrangementSelectedId : setSelectedHabitId)}
                 className="h-full min-h-0 rounded-none border-0 shadow-none"
               />
             }

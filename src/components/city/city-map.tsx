@@ -14,6 +14,8 @@ interface CityMapProps {
   onSelectHabit?: (habit: Habit) => void
   sample?: boolean
   className?: string
+  arranging?: boolean
+  selectedHabitId?: string
 }
 
 function handleKeyDown(event: KeyboardEvent<SVGGElement>, onSelect: () => void) {
@@ -23,7 +25,15 @@ function handleKeyDown(event: KeyboardEvent<SVGGElement>, onSelect: () => void) 
   }
 }
 
-export function CityMap({ habits, checkIns, onSelectHabit, sample = false, className }: CityMapProps) {
+export function CityMap({
+  habits,
+  checkIns,
+  onSelectHabit,
+  sample = false,
+  className,
+  arranging = false,
+  selectedHabitId,
+}: CityMapProps) {
   const elements = projectCity(habits, checkIns)
   const districts = Object.entries(districtCatalog) as Array<[
     keyof typeof districtCatalog,
@@ -32,11 +42,17 @@ export function CityMap({ habits, checkIns, onSelectHabit, sample = false, class
   const mapId = sample ? "sample" : "personal"
 
   return (
-    <Card className={cn("relative overflow-hidden", className)}>
+    <Card
+      className={cn("relative overflow-hidden", className)}
+      data-city-renderer="accessible-svg"
+      data-city-arrange-mode={arranging || undefined}
+    >
       <CardContent className="p-0">
         <svg viewBox="0 0 100 100" className="block h-full min-h-[25rem] w-full" role="img" aria-labelledby={`${mapId}-map-title ${mapId}-map-desc`}>
           <title id={`${mapId}-map-title`}>{sample ? "A sample living city" : "Your living city"}</title>
-          <desc id={`${mapId}-map-desc`}>A central fountain anchors the city. Buildings grow from repeated habits across six districts. Select a building to inspect its habit.</desc>
+          <desc id={`${mapId}-map-desc`}>
+            A central fountain anchors the city. Buildings grow from repeated habits across six districts. {arranging ? "Arrange mode is active. Select a building here, then use the directional controls to move it between valid parcels." : "Select a building to inspect its habit."}
+          </desc>
           <defs>
             <pattern id={`${mapId}-grid`} width="5" height="5" patternUnits="userSpaceOnUse">
               <path d="M 5 0 L 0 0 0 5" fill="none" stroke="var(--border)" strokeWidth="0.12" opacity="0.65" />
@@ -91,11 +107,13 @@ export function CityMap({ habits, checkIns, onSelectHabit, sample = false, class
             }
             const style = { "--building": colorVariable[habit.colorToken] ?? "var(--primary)" } as CSSProperties
             const select = () => onSelectHabit?.(habit)
+            const selected = arranging && habit.id === selectedHabitId
             const interactiveProps = onSelectHabit
               ? {
                   tabIndex: 0,
                   role: "button" as const,
-                  "aria-label": `${habit.name}, ${getHabitStage(habit.id, checkIns)} stage`,
+                  "aria-label": `${habit.name}, ${getHabitStage(habit.id, checkIns)} stage${arranging ? ", select for arrangement" : ""}`,
+                  "aria-pressed": arranging ? selected : undefined,
                   onClick: select,
                   onKeyDown: (event: KeyboardEvent<SVGGElement>) => handleKeyDown(event, select),
                 }
@@ -109,6 +127,9 @@ export function CityMap({ habits, checkIns, onSelectHabit, sample = false, class
                 {...interactiveProps}
                 className={onSelectHabit ? "cursor-pointer outline-none focus-visible:opacity-80" : undefined}
               >
+                {selected && (
+                  <rect x="-1.5" y="-1.5" width="15" height="15" rx="2" fill="none" stroke="var(--primary)" strokeWidth="0.7" strokeDasharray="1.5 1" />
+                )}
                 <BuildingIllustration type={habit.buildingType} stage={element.stage} color={habit.colorToken} status={habit.status} size={12} label={habit.name} />
               </g>
             )

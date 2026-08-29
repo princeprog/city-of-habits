@@ -1,7 +1,10 @@
 import { render, screen } from "@testing-library/react"
-import { describe, expect, it } from "vitest"
+import userEvent from "@testing-library/user-event"
+import { describe, expect, it, vi } from "vitest"
 
 import { CityMap } from "@/components/city/city-map"
+import { sampleHabits } from "@/lib/city/catalog"
+import type { Habit } from "@/types/city"
 
 describe("CityMap", () => {
   it("represents the permanent center fountain in the accessible fallback", () => {
@@ -10,5 +13,31 @@ describe("CityMap", () => {
     expect(screen.getByRole("img", { name: /^Your living city/ })).toBeInTheDocument()
     expect(container.querySelector('[data-city-centerpiece="fountain"]')).toBeInTheDocument()
     expect(container.querySelector("desc")).toHaveTextContent(/central fountain/i)
+  })
+
+  it("describes Arrange mode and lets keyboard users select a building", async () => {
+    const user = userEvent.setup()
+    const onSelectHabit = vi.fn()
+    const habit: Habit = {
+      ...sampleHabits[0],
+      relatedHabitIds: [...sampleHabits[0].relatedHabitIds],
+    }
+
+    const { container } = render(
+      <CityMap
+        habits={[habit]}
+        checkIns={[]}
+        arranging
+        selectedHabitId={habit.id}
+        onSelectHabit={onSelectHabit}
+      />,
+    )
+
+    expect(container.querySelector("desc")).toHaveTextContent(/arrange mode is active/i)
+    const building = screen.getByRole("button", { name: new RegExp(habit.name) })
+    expect(building).toHaveAttribute("aria-pressed", "true")
+    await user.tab()
+    await user.keyboard("{Enter}")
+    expect(onSelectHabit).toHaveBeenCalledWith(habit)
   })
 })
