@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -18,11 +17,11 @@ import {
 
 import { CityLogo } from "@/components/city/city-logo";
 import { Reveal } from "@/components/landing/landing-motion";
+import { LandingHero } from "@/components/landing/landing-hero";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -30,36 +29,6 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-
-const heroPromises = [
-  {
-    icon: LockKeyhole,
-    label: "No account",
-    description: "Begin without a profile or public identity.",
-    tone: "text-primary",
-  },
-  {
-    icon: CloudOff,
-    label: "Works offline",
-    description: "Your city remains available on this device.",
-    tone: "text-chart-4",
-  },
-  {
-    icon: Download,
-    label: "Export anytime",
-    description: "Keep a portable JSON backup of your progress.",
-    tone: "text-chart-2",
-  },
-] as const;
-
-const districts = [
-  { name: "Mind", tone: "text-chart-4", surface: "bg-chart-4/10" },
-  { name: "Creative", tone: "text-chart-2", surface: "bg-chart-2/15" },
-  { name: "Connection", tone: "text-chart-3", surface: "bg-chart-3/10" },
-  { name: "Work", tone: "text-chart-1", surface: "bg-chart-1/10" },
-  { name: "Recovery", tone: "text-chart-2", surface: "bg-chart-2/15" },
-  { name: "Body", tone: "text-chart-5", surface: "bg-chart-5/10" },
-] as const;
 
 const steps = [
   {
@@ -188,159 +157,7 @@ export function LandingPage() {
       data-landing-theme="light"
       className="min-h-screen overflow-x-clip bg-background text-foreground"
     >
-      <header className="sticky top-0 z-20 border-b border-border/70 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="mx-auto flex h-20 max-w-[93rem] items-center justify-between px-5 sm:px-8 lg:px-12">
-          <CityLogo />
-          <nav
-            className="hidden items-center gap-6 text-sm text-muted-foreground md:flex"
-            aria-label="Main navigation"
-          >
-            <Link
-              href="#how-it-works"
-              className="transition-colors hover:text-foreground"
-            >
-              How it works
-            </Link>
-            <Link
-              href="#features"
-              className="transition-colors hover:text-foreground"
-            >
-              Features
-            </Link>
-            <Link
-              href="#privacy"
-              className="transition-colors hover:text-foreground"
-            >
-              Privacy
-            </Link>
-            <Link href="/city" className={buttonVariants({ size: "lg" })}>
-              Enter the city <ArrowRight data-icon="inline-end" />
-            </Link>
-          </nav>
-          <Link
-            href="/city"
-            className={cn(buttonVariants({ size: "sm" }), "md:hidden")}
-          >
-            Enter <ArrowRight data-icon="inline-end" />
-          </Link>
-        </div>
-      </header>
-
-      <section
-        className="px-5 pb-20 pt-12 sm:px-8 sm:pb-24 sm:pt-16 lg:px-12 lg:pt-20"
-        aria-labelledby="landing-title"
-      >
-        <div className="mx-auto max-w-[93rem]">
-          <Reveal className="mx-auto max-w-4xl text-center">
-            <Badge
-              className="border-primary/25 bg-primary/5 text-primary"
-              variant="outline"
-            >
-              A private daily practice
-            </Badge>
-            <h1
-              id="landing-title"
-              className="mt-6 text-balance text-5xl font-semibold tracking-tight sm:text-7xl lg:text-8xl"
-            >
-              See the life <span className="text-primary">you are building.</span>
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
-              City of Habits turns recurring actions into a living personal
-              city. Every check-in adds detail, warmth, and a reason to
-              return.
-            </p>
-            <div className="mt-7 flex flex-wrap justify-center gap-3">
-              <Link href="/city" className={buttonVariants({ size: "lg" })}>
-                Build your city <ArrowRight data-icon="inline-end" />
-              </Link>
-              <Link
-                href="#how-it-works"
-                className={buttonVariants({
-                  size: "lg",
-                  variant: "outline",
-                })}
-              >
-                Take the short tour <ArrowRight data-icon="inline-end" />
-              </Link>
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.12} distance={28}>
-            <Card className="relative mx-auto mt-16 max-w-6xl overflow-hidden bg-foreground text-background shadow-xl">
-              <CardHeader className="gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
-                <div>
-                  <h2 className="font-heading text-base leading-snug font-medium text-background">
-                    A sample city
-                  </h2>
-                  <CardDescription className="text-background/70">
-                    Six foundations connected into one living map.
-                  </CardDescription>
-                </div>
-                <CardAction>
-                  <Badge variant="secondary">Six districts</Badge>
-                </CardAction>
-              </CardHeader>
-              <CardContent className="px-3 pb-3 sm:px-5 sm:pb-5">
-                <Image
-                  src="/sample-city-hero.png"
-                  alt="An isometric sample city with Mind, Creative, Connection, Work, Recovery, and Body districts connected by roads."
-                  width={1448}
-                  height={1086}
-                  sizes="(min-width: 1280px) 72rem, (min-width: 640px) 90vw, 94vw"
-                  className="aspect-[4/3] w-full object-cover"
-                  priority
-                />
-              </CardContent>
-            </Card>
-          </Reveal>
-
-          <div className="relative z-10 mx-auto -mt-7 grid max-w-5xl gap-3 px-2 sm:grid-cols-3 sm:px-8">
-            {heroPromises.map(
-              ({ icon: Icon, label, description, tone }, index) => (
-                <Reveal key={label} delay={0.2 + index * 0.08} distance={16}>
-                  <Card
-                    size="sm"
-                    className="h-full bg-card/95 shadow-md backdrop-blur"
-                  >
-                    <CardHeader>
-                      <Icon className={cn("mb-1", tone)} aria-hidden="true" />
-                      <h3 className="font-heading text-base leading-snug font-medium">
-                        {label}
-                      </h3>
-                      <CardDescription>{description}</CardDescription>
-                    </CardHeader>
-                  </Card>
-                </Reveal>
-              ),
-            )}
-          </div>
-
-          <Reveal delay={0.32} distance={12}>
-            <div className="mx-auto mt-10 flex max-w-4xl flex-col items-center gap-4 text-center">
-              <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
-                <span>Six districts</span>
-                <Separator className="hidden w-12 bg-primary/30 sm:block" />
-                <span>One living map</span>
-              </div>
-              <div className="flex flex-wrap justify-center gap-2">
-                {districts.map(({ name, tone, surface }) => (
-                  <Badge
-                    key={name}
-                    variant="outline"
-                    className={cn("gap-2 border-border/70", surface, tone)}
-                  >
-                    <span
-                      className="size-2 rounded-full bg-current"
-                      aria-hidden="true"
-                    />
-                    {name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+      <LandingHero />
 
       <section
         id="how-it-works"

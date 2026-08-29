@@ -36,7 +36,9 @@ test("keeps the landing page crawlable and explains the privacy promise", async 
 }) => {
   await expect(page).toHaveTitle(/City of Habits/i);
   await expect(
-    page.getByRole("heading", { name: /see the life you are building/i }),
+    page.getByRole("heading", {
+      name: /turn your habits into a city you.?re proud of/i,
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: /the map is yours to keep/i }),
@@ -45,8 +47,8 @@ test("keeps the landing page crawlable and explains the privacy promise", async 
   await expect(page.getByText("Works offline").first()).toBeVisible();
   await expect(page.getByText("Export anytime").first()).toBeVisible();
   await expect(
-    page.getByRole("link", { name: /build your city/i }),
-  ).toHaveAttribute("href", /\/city\/?$/);
+    page.getByRole("link", { name: /start building your city/i }),
+  ).toHaveAttribute("href", /\/habit\/new\/?$/);
   const cityLinks = page.locator('a[href^="/city"]');
   expect(await cityLinks.count()).toBeGreaterThanOrEqual(3);
 });
@@ -192,7 +194,9 @@ test("keeps the landing composition inside the viewport", async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: /see the life you are building/i }),
+      page.getByRole("heading", {
+        name: /turn your habits into a city you.?re proud of/i,
+      }),
     ).toBeVisible();
 
     const overflow = await page.evaluate(() => ({
