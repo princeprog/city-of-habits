@@ -63,6 +63,7 @@ export interface HabitWizardProps {
   onCreated?: (habit: Habit) => void | Promise<void>
   onCancel: () => void
   onDirtyChange?: (dirty: boolean) => void
+  onSavingChange?: (saving: boolean) => void
 }
 
 export function HabitWizard({
@@ -70,6 +71,7 @@ export function HabitWizard({
   onCreated,
   onCancel,
   onDirtyChange,
+  onSavingChange,
 }: HabitWizardProps) {
   const [step, setStep] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
@@ -107,17 +109,21 @@ export function HabitWizard({
 
   async function onSubmit(values: HabitCreationValues) {
     setIsSaving(true)
+    onSavingChange?.(true)
     try {
       const habit = await onCreate(values)
       toast.success("A new foundation is ready.", {
         description: `${habit.name} now has a place in your city.`,
       })
       await onCreated?.(habit)
+      setIsSaving(false)
+      onSavingChange?.(false)
     } catch {
       toast.error("The foundation could not be saved.", {
         description: "Try again, or check that browser storage is available.",
       })
       setIsSaving(false)
+      onSavingChange?.(false)
     }
   }
 
