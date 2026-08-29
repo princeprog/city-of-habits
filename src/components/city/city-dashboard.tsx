@@ -166,6 +166,7 @@ export function CityDashboard() {
       <section className="relative flex min-h-[calc(100svh-4rem)] flex-col gap-3 p-3 md:gap-4 md:p-5">
         <div className="relative min-h-[36rem] flex-1 overflow-hidden rounded-xl border border-[#d4dfd0] bg-[#9ebd8e] shadow-sm md:min-h-[40rem]">
           <City3DMap
+            className="absolute inset-0"
             habits={habits}
             checkIns={checkIns}
             selectedHabitId={selectedHabitId}

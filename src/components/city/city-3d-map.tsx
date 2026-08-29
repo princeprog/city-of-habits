@@ -16,6 +16,7 @@ import type {
 } from "@/lib/city/scene-projection"
 import { CITY_WORLD_LIMIT, projectCityScene } from "@/lib/city/scene-projection"
 import type { CheckIn, DistrictId, Habit } from "@/types/city"
+import { cn } from "@/lib/utils"
 
 const tileColors: Record<string, string> = {
   coral: "#d98f6e",
@@ -99,6 +100,7 @@ export interface City3DMapProps {
   district?: DistrictId | "all"
   onSelectHabit?: (habitId: string) => void
   fallback?: React.ReactNode
+  className?: string
 }
 
 export function City3DMap({ fallback, ...props }: City3DMapProps) {
@@ -117,6 +119,7 @@ function City3DCanvas({
   district = "all",
   onSelectHabit,
   fallback,
+  className,
 }: City3DMapProps) {
   const quality = useCityQuality()
   const projection = useMemo(
@@ -126,7 +129,7 @@ function City3DCanvas({
 
   return (
     <div
-      className="relative h-full min-h-[34rem] overflow-hidden rounded-xl bg-[#9fbd91]"
+      className={cn("relative h-full min-h-[34rem] overflow-hidden rounded-xl bg-[#9fbd91]", className)}
       data-city-renderer="3d"
       data-render-tier={quality.tier}
     >
@@ -168,8 +171,8 @@ function City3DCanvas({
         </Suspense>
         <MapControls
           makeDefault
-          enableDamping
-          dampingFactor={0.08}
+          enableDamping={quality.damping}
+          dampingFactor={quality.damping ? 0.08 : 0}
           enablePan
           enableRotate
           enableZoom
@@ -466,16 +469,21 @@ function useCityQuality() {
   )
 
   useEffect(() => {
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
     const update = () => {
       setQuality(getCityRenderQuality({
         width: window.innerWidth,
         devicePixelRatio: window.devicePixelRatio,
-        prefersReducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        prefersReducedMotion: motionQuery.matches,
       }))
     }
     update()
     window.addEventListener("resize", update)
-    return () => window.removeEventListener("resize", update)
+    motionQuery.addEventListener("change", update)
+    return () => {
+      window.removeEventListener("resize", update)
+      motionQuery.removeEventListener("change", update)
+    }
   }, [])
 
   return quality

@@ -8,6 +8,7 @@ describe("getCityRenderQuality", () => {
       tier: "desktop",
       pixelRatio: 1.5,
       shadows: true,
+      damping: true,
       decorationLimit: 42,
     })
   })
@@ -21,6 +22,7 @@ describe("getCityRenderQuality", () => {
       tier: "mobile",
       pixelRatio: 1,
       shadows: false,
+      damping: false,
       decorationLimit: 12,
     })
   })
@@ -30,6 +32,7 @@ describe("getCityRenderQuality", () => {
       tier: "tablet",
       pixelRatio: 1,
       shadows: false,
+      damping: true,
       decorationLimit: 24,
     })
   })

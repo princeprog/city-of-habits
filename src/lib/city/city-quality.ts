@@ -4,6 +4,7 @@ export interface CityRenderQuality {
   tier: CityRenderTier
   pixelRatio: number
   shadows: boolean
+  damping: boolean
   decorationLimit: number
 }
 
@@ -21,6 +22,7 @@ export function getCityRenderQuality({
       tier: "mobile",
       pixelRatio: 1,
       shadows: false,
+      damping: false,
       decorationLimit: 12,
     }
   }
@@ -30,6 +32,7 @@ export function getCityRenderQuality({
       tier: "tablet",
       pixelRatio: Math.min(1.25, Math.max(1, devicePixelRatio)),
       shadows: false,
+      damping: !prefersReducedMotion,
       decorationLimit: 24,
     }
   }
@@ -38,6 +41,7 @@ export function getCityRenderQuality({
     tier: "desktop",
     pixelRatio: Math.min(1.5, Math.max(1, devicePixelRatio)),
     shadows: !prefersReducedMotion,
+    damping: !prefersReducedMotion,
     decorationLimit: 42,
   }
 }
