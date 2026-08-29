@@ -3,9 +3,7 @@ import {
   ArrowRight,
   BarChart3,
   Building2,
-  CheckCircle2,
   CloudOff,
-  Compass,
   Download,
   Eye,
   Landmark,
@@ -14,9 +12,9 @@ import {
 } from "lucide-react";
 
 import { CityLogo } from "@/components/city/city-logo";
-import { Reveal } from "@/components/landing/landing-motion";
 import { LandingHero } from "@/components/landing/landing-hero";
 import { LandingJourney } from "@/components/landing/landing-journey";
+import { LandingShowcase } from "@/components/landing/landing-showcase";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -28,59 +26,6 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-
-const features = [
-  {
-    icon: Building2,
-    eyebrow: "Habits become places",
-    title: "Read your progress as a city",
-    description:
-      "Each repeated action becomes a building. As the habit continues, its place gains detail and the wider neighborhood begins to take shape.",
-    footer: "Buildings, paths, and landmarks grow together.",
-    className: "lg:col-span-7 lg:row-span-2 lg:min-h-[34rem]",
-    tone: "primary",
-  },
-  {
-    icon: Compass,
-    eyebrow: "Six districts",
-    title: "Give every routine a meaningful home",
-    description:
-      "Body, Mind, Creative, Connection, Work, and Recovery keep different parts of life visible without turning them into a leaderboard.",
-    footer: "A place for every kind of progress.",
-    className: "lg:col-span-5",
-    tone: "accent",
-  },
-  {
-    icon: CheckCircle2,
-    eyebrow: "One calm check-in",
-    title: "Keep the loop small enough to repeat",
-    description:
-      "A single local check-in is enough to add another day to the story. Missed days never erase what you built.",
-    footer: "Progress is lifetime-derived.",
-    className: "lg:col-span-5",
-    tone: "secondary",
-  },
-  {
-    icon: BarChart3,
-    eyebrow: "Private reports",
-    title: "Notice patterns without judgment",
-    description:
-      "See completion rhythm, active foundations, and recent growth through a calm local report.",
-    footer: "Reflection stays on your device.",
-    className: "lg:col-span-4",
-    tone: "coral",
-  },
-  {
-    icon: Download,
-    eyebrow: "Portable by design",
-    title: "Take the map with you",
-    description:
-      "Export a complete JSON backup whenever you want, then keep your records close and under your control.",
-    footer: "No remote account required.",
-    className: "lg:col-span-8",
-    tone: "ivory",
-  },
-] as const;
 
 const privacyPromises = [
   {
@@ -125,120 +70,7 @@ export function LandingPage() {
 
       <LandingJourney />
 
-      <section
-        id="features"
-        className="scroll-mt-24 bg-secondary/45 px-5 py-20 sm:px-8 sm:py-24 lg:px-12"
-        aria-labelledby="features-title"
-      >
-        <div className="mx-auto max-w-7xl">
-          <Reveal className="mx-auto max-w-3xl text-center">
-            <Badge
-              className="border-primary/25 bg-primary/5 text-primary"
-              variant="outline"
-            >
-              Features
-            </Badge>
-            <h2
-              id="features-title"
-              className="mt-5 text-balance text-4xl font-semibold tracking-tight sm:text-6xl"
-            >
-              Keep your whole practice in one place.
-            </h2>
-            <p className="mt-5 text-pretty text-muted-foreground sm:text-lg">
-              A habit tracker, a city builder, and a private reflection space—all
-              connected by the same small daily action.
-            </p>
-          </Reveal>
-
-          <div className="mt-14 grid gap-4 lg:grid-cols-12 lg:grid-rows-2">
-            {features.map(
-              (
-                {
-                  icon: Icon,
-                  eyebrow,
-                  title,
-                  description,
-                  footer,
-                  className,
-                  tone,
-                },
-                index,
-              ) => {
-                const isPrimary = tone === "primary";
-                const surface = {
-                  primary: "bg-primary text-primary-foreground",
-                  accent: "bg-accent/35",
-                  secondary: "bg-secondary",
-                  coral: "bg-chart-3/10",
-                  ivory: "bg-card",
-                }[tone];
-
-                return (
-                  <Reveal
-                    key={title}
-                    className={cn("h-full", className)}
-                    delay={index * 0.07}
-                  >
-                    <Card
-                      className={cn(
-                        "flex h-full flex-col overflow-hidden",
-                        surface,
-                      )}
-                    >
-                      <CardHeader className="gap-4">
-                        <Icon
-                          className={cn(
-                            "mb-1",
-                            isPrimary ? "text-accent" : "text-primary",
-                          )}
-                          aria-hidden="true"
-                        />
-                        <CardDescription
-                          className={cn(
-                            "text-xs uppercase tracking-[0.18em]",
-                            isPrimary && "text-primary-foreground",
-                          )}
-                        >
-                          {eyebrow}
-                        </CardDescription>
-                        <h3
-                          className={cn(
-                            "font-heading text-2xl leading-snug font-medium sm:text-3xl",
-                            isPrimary && "text-primary-foreground",
-                          )}
-                        >
-                          {title}
-                        </h3>
-                      </CardHeader>
-                      <CardContent className="mt-auto">
-                        <p
-                          className={cn(
-                            "max-w-xl text-sm leading-6 text-muted-foreground",
-                            isPrimary && "text-primary-foreground",
-                          )}
-                        >
-                          {description}
-                        </p>
-                      </CardContent>
-                      <CardFooter>
-                        <Badge
-                          variant={isPrimary ? "secondary" : "outline"}
-                          className={cn(
-                            "border-border/70",
-                            isPrimary && "border-transparent",
-                          )}
-                        >
-                          {footer}
-                        </Badge>
-                      </CardFooter>
-                    </Card>
-                  </Reveal>
-                );
-              },
-            )}
-          </div>
-        </div>
-      </section>
+      <LandingShowcase />
 
       <section
         id="privacy"
