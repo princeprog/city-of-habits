@@ -4,6 +4,7 @@ import { makeId, getLocalDateKey, getStablePosition } from "@/lib/city/rules"
 import type {
   CheckIn,
   CityPreferences,
+  CityPosition,
   CitySnapshot,
   Habit,
   ThemeMode,
@@ -119,6 +120,40 @@ export async function updateHabit(id: string, changes: Partial<Habit>) {
   const next = { ...current, ...changes, id, updatedAt: new Date().toISOString() }
   await cityDb.habits.put(next)
   return next
+}
+
+export interface HabitPositionChange {
+  id: string
+  position: CityPosition
+}
+
+export async function updateHabitPositions(
+  changes: HabitPositionChange[]
+): Promise<Habit[]> {
+  if (changes.length === 0) return []
+
+  const ids = changes.map((change) => change.id)
+  if (new Set(ids).size !== ids.length) {
+    throw new Error("Duplicate habit position change")
+  }
+
+  return cityDb.transaction("rw", cityDb.habits, async () => {
+    const current = await cityDb.habits.bulkGet(ids)
+    if (current.some((habit) => !habit)) throw new Error("Habit not found")
+
+    const updatedAt = new Date().toISOString()
+    const next = current.map((habit, index) => ({
+      ...habit!,
+      position: {
+        x: Math.max(0, Math.min(100, changes[index].position.x)),
+        y: Math.max(0, Math.min(100, changes[index].position.y)),
+      },
+      updatedAt,
+    }))
+
+    await cityDb.habits.bulkPut(next)
+    return next
+  })
 }
 
 export async function toggleCheckIn(

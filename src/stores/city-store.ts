@@ -13,6 +13,7 @@ import {
   saveReflection,
   toggleCheckIn,
   updateHabit,
+  updateHabitPositions,
 } from "@/lib/db"
 import { sampleCheckIns, sampleHabits } from "@/lib/city/catalog"
 import type {
@@ -32,6 +33,7 @@ interface CityStore {
   hydrate: () => Promise<void>
   addHabit: (input: Parameters<typeof createHabit>[0]) => Promise<Habit>
   updateHabit: (id: string, changes: Partial<Habit>) => Promise<void>
+  updateHabitPositions: (changes: Parameters<typeof updateHabitPositions>[0]) => Promise<Habit[]>
   toggleCheckIn: (habitId: string, input?: { note?: string; mood?: Mood }) => Promise<CheckIn | null>
   saveReflection: (input: Omit<Reflection, "id" | "createdAt" | "updatedAt">) => Promise<void>
   setPreferences: (input: Partial<CityPreferences>) => Promise<void>
@@ -58,6 +60,14 @@ export const useCityStore = create<CityStore>((set) => ({
   updateHabit: async (id, changes) => {
     const next = await updateHabit(id, changes)
     set((state) => ({ habits: state.habits.map((habit) => (habit.id === id ? next : habit)) }))
+  },
+  updateHabitPositions: async (changes) => {
+    const updated = await updateHabitPositions(changes)
+    const updatedById = new Map(updated.map((habit) => [habit.id, habit]))
+    set((state) => ({
+      habits: state.habits.map((habit) => updatedById.get(habit.id) ?? habit),
+    }))
+    return updated
   },
   toggleCheckIn: async (habitId, input) => {
     const result = await toggleCheckIn(habitId, input)
