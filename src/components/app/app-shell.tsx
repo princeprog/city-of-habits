@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { BarChart3, Building2, Compass, Map, Plus, Settings2 } from "lucide-react"
 
 import { CityLogoContent } from "@/components/city/city-logo"
+import { CityImmersiveShell } from "@/components/app/city-immersive-shell"
 import {
   Sidebar,
   SidebarContent,
@@ -45,6 +46,10 @@ function isCurrentRoute(pathname: string, href: string) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+
+  if (normalizePath(pathname) === "/city") {
+    return <CityImmersiveShell>{children}</CityImmersiveShell>
+  }
 
   return (
     <SidebarProvider>

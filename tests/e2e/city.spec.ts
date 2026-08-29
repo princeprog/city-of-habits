@@ -328,7 +328,7 @@ test("keeps the application headers aligned across sidebar states and viewports"
     { width: 1440, height: 900 },
   ]) {
     await page.setViewportSize(viewport);
-    await page.goto("/city");
+    await page.goto("/report");
 
     const geometry = await page.evaluate(() => {
       const sidebarHeader = document.querySelector<HTMLElement>(
@@ -392,6 +392,51 @@ test("keeps the application headers aligned across sidebar states and viewports"
       Math.abs(collapsedGeometry.sidebarBottom - collapsedGeometry.pageBottom),
     ).toBeLessThanOrEqual(1);
   }
+});
+
+test("renders the immersive city workspace and opens a habit inspector", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/city");
+
+  await expect(page.getByRole("heading", { name: "My City" })).toBeVisible();
+  await expect(page.getByLabel("Search habits")).toBeVisible();
+  await expect(page.locator('[data-city-toolbar]').getByRole("link", { name: "Add habit" })).toHaveAttribute(
+    "href",
+    /\/habit\/new\/?$/,
+  );
+  await expect(page.locator('[data-city-mode="immersive"]')).toBeVisible();
+  await expect(page.locator('[data-city-renderer="3d"]')).toBeVisible();
+  await expect(page.getByRole("region", { name: "Browse buildings" })).toBeVisible();
+
+  await page.getByRole("button", { name: /explore a sample city/i }).click();
+  await expect(page.getByRole("button", { name: /read for 20 minutes/i })).toBeVisible();
+  await page.getByRole("button", { name: /read for 20 minutes/i }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "Read for 20 minutes" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /check in today/i }),
+  ).toBeVisible();
+  await expect(page.getByText(/local to this browser/i)).toBeVisible();
+});
+
+test("keeps city search and district filtering available without removing buildings", async ({
+  page,
+}) => {
+  await page.goto("/city");
+  await page.getByRole("button", { name: /explore a sample city/i }).click();
+
+  await page.getByLabel("Search habits").fill("walk");
+  await expect(page.locator('[data-city-query="walk"]')).toBeVisible();
+  await expect(page.getByRole("button", { name: /read for 20 minutes/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /go for a walk/i })).toBeVisible();
+
+  await page.getByRole("button", { name: /show body district/i }).click();
+  await expect(page.locator('[data-city-district="body"]')).toBeVisible();
+  await expect(page.getByRole("button", { name: /read for 20 minutes/i })).toBeVisible();
 });
 
 test("keeps the mobile brand and query-string route navigation usable", async ({
