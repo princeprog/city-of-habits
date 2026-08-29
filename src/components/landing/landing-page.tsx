@@ -10,14 +10,13 @@ import {
   Eye,
   Landmark,
   LockKeyhole,
-  Map,
   Route,
-  Sparkles,
 } from "lucide-react";
 
 import { CityLogo } from "@/components/city/city-logo";
 import { Reveal } from "@/components/landing/landing-motion";
 import { LandingHero } from "@/components/landing/landing-hero";
+import { LandingJourney } from "@/components/landing/landing-journey";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -29,41 +28,6 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-
-const steps = [
-  {
-    icon: Sparkles,
-    title: "Name",
-    description: "Choose a behavior you want to see in the city.",
-    detail: "Start with one foundation",
-    tone: "text-chart-3",
-    surface: "bg-chart-3/10",
-  },
-  {
-    icon: Map,
-    title: "Place",
-    description: "Give it a district and a visual identity.",
-    detail: "Make the intention visible",
-    tone: "text-chart-4",
-    surface: "bg-chart-4/10",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Check in",
-    description: "Mark the habit as done with one calm interaction.",
-    detail: "Return whenever you can",
-    tone: "text-primary",
-    surface: "bg-primary/10",
-  },
-  {
-    icon: Eye,
-    title: "Notice",
-    description: "Explore what the pattern is making possible.",
-    detail: "Let the bigger picture emerge",
-    tone: "text-chart-2",
-    surface: "bg-chart-2/15",
-  },
-] as const;
 
 const features = [
   {
@@ -159,74 +123,7 @@ export function LandingPage() {
     >
       <LandingHero />
 
-      <section
-        id="how-it-works"
-        className="scroll-mt-24 px-5 py-20 sm:px-8 sm:py-24 lg:px-12"
-        aria-labelledby="how-it-works-title"
-      >
-        <div className="mx-auto max-w-7xl">
-          <Reveal className="mx-auto max-w-3xl text-center">
-            <Badge
-              className="border-primary/25 bg-primary/5 text-primary"
-              variant="outline"
-            >
-              How it works
-            </Badge>
-            <h2
-              id="how-it-works-title"
-              className="mt-5 text-balance text-4xl font-semibold tracking-tight sm:text-6xl"
-            >
-              One intention becomes a living neighborhood.
-            </h2>
-            <p className="mt-5 text-pretty text-muted-foreground sm:text-lg">
-              The loop stays small enough to repeat and visual enough to notice.
-              You make one calm choice; the city carries the longer story.
-            </p>
-          </Reveal>
-
-          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {steps.map(
-              (
-                { icon: Icon, title, description, detail, tone, surface },
-                index,
-              ) => (
-                <Reveal key={title} className="h-full" delay={index * 0.07}>
-                  <Card size="sm" className="h-full min-h-64 bg-card">
-                    <CardHeader>
-                      <div
-                        className={cn(
-                          "flex size-11 items-center justify-center rounded-full",
-                          surface,
-                          tone,
-                        )}
-                      >
-                        <Icon aria-hidden="true" />
-                      </div>
-                      <CardDescription className="pt-2 text-xs uppercase tracking-[0.18em]">
-                        Step 0{index + 1}
-                      </CardDescription>
-                      <h3 className="font-heading text-base leading-snug font-medium">
-                        {title}
-                      </h3>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-3">
-                      <p className="text-sm text-muted-foreground">
-                        {description}
-                      </p>
-                      <Badge
-                        variant="outline"
-                        className="w-fit border-border/70"
-                      >
-                        {detail}
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                </Reveal>
-              ),
-            )}
-          </div>
-        </div>
-      </section>
+      <LandingJourney />
 
       <section
         id="features"
