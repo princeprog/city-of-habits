@@ -457,7 +457,9 @@ test("renders the immersive city workspace with the map-only layout", async ({
   await expect(page.locator('[data-city-renderer="3d"]'))
     .toHaveAttribute("data-city-centerpiece", "fountain");
   await expect(page.locator('[data-city-renderer="3d"]'))
-    .toHaveAttribute("data-city-min-camera-elevation", "24");
+    .toHaveAttribute("data-city-terrain", "seamless");
+  await expect(page.locator('[data-city-renderer="3d"]'))
+    .toHaveAttribute("data-city-camera-mode", "fixed-isometric");
   await expect(page.locator('[data-city-renderer="3d"]')).toHaveAttribute(
     "data-city-density-tier",
     "seed",
@@ -466,6 +468,8 @@ test("renders the immersive city workspace with the map-only layout", async ({
   await expect(page.getByText("This week", { exact: true })).toHaveCount(0);
   await expect(page.locator('[data-city-map-surface]')).toBeVisible();
   await expect(page.locator('[data-city-status-card]')).toHaveCount(0);
+  await expect(page.getByText(/right-drag to rotate/i)).toHaveCount(0);
+  await expect(page.getByText(/drag to move.*scroll to zoom/i)).toBeVisible();
 
   const statusTrigger = page.getByRole("button", { name: /city status/i });
   await expect(statusTrigger).toBeVisible();

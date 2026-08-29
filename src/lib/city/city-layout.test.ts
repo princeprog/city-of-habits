@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   CITY_BUILDING_EDGE_CLEARANCE,
-  CITY_CAMERA_MIN_ELEVATION_DEGREES,
+  CITY_TERRAIN_SIZE,
   findNearestValidPlot,
   getCityDensityTier,
   getCityHomeFrame,
@@ -28,8 +28,8 @@ const habit = (id: string, district: Habit["district"], position = { x: 50, y: 5
 })
 
 describe("city layout", () => {
-  it("keeps camera tilt high enough for balanced land proportions", () => {
-    expect(CITY_CAMERA_MIN_ELEVATION_DEGREES).toBeGreaterThanOrEqual(22)
+  it("keeps the terrain larger than every supported camera viewport", () => {
+    expect(CITY_TERRAIN_SIZE).toBeGreaterThanOrEqual(160)
   })
 
   it("reserves enough edge clearance for the widest mature building", () => {

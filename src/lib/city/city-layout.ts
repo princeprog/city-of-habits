@@ -7,9 +7,8 @@ export const CITY_PLOT_SPACING = 4
 export const FOUNTAIN_CLEARANCE_RADIUS = 5
 export const ROAD_BUILDING_CLEARANCE = 1.8
 export const CITY_BUILDING_EDGE_CLEARANCE = 6
-export const CITY_CAMERA_MIN_ELEVATION_DEGREES = 24
-export const CITY_CAMERA_MAX_POLAR_ANGLE =
-  ((90 - CITY_CAMERA_MIN_ELEVATION_DEGREES) * Math.PI) / 180
+export const CITY_TERRAIN_SIZE = 200
+export const CITY_CAMERA_PAN_LIMIT = 28
 
 export type CityDensityTier = "seed" | "settlement" | "neighborhood" | "town" | "city"
 

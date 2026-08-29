@@ -2,15 +2,15 @@
 
 import { Canvas, type ThreeEvent, useThree } from "@react-three/fiber"
 import { MapControls, useGLTF } from "@react-three/drei"
-import { Box3, Group, Plane, Vector3 } from "three"
+import { Box3, Group, MOUSE, Plane, TOUCH, Vector3 } from "three"
 import type { OrthographicCamera } from "three"
 import * as React from "react"
 import { Suspense, useEffect, useMemo, useRef, useState } from "react"
 
 import { getDecorationModelPath } from "@/lib/city/scene-assets"
 import {
-  CITY_CAMERA_MAX_POLAR_ANGLE,
-  CITY_CAMERA_MIN_ELEVATION_DEGREES,
+  CITY_CAMERA_PAN_LIMIT,
+  CITY_TERRAIN_SIZE,
   findNearestValidPlot,
   toStoredPosition,
   type CityHomeFrame,
@@ -26,7 +26,7 @@ import type {
   ProjectedCityLandmark,
   ScenePosition,
 } from "@/lib/city/scene-projection"
-import { CITY_WORLD_LIMIT, projectCityScene } from "@/lib/city/scene-projection"
+import { projectCityScene } from "@/lib/city/scene-projection"
 import type { CheckIn, CityPosition, DistrictId, Habit } from "@/types/city"
 import { cn } from "@/lib/utils"
 import { CityFountain } from "@/components/city/city-fountain"
@@ -59,6 +59,15 @@ const targetHeights: Record<Habit["buildingType"], number> = {
   tower: 5.2,
   lighthouse: 3.6,
 }
+
+const terrainPatches = [
+  { x: -36, z: -28, radius: 15, color: "#a8c88f", opacity: 0.3 },
+  { x: 30, z: -34, radius: 18, color: "#b9d49b", opacity: 0.24 },
+  { x: -42, z: 24, radius: 20, color: "#b7d198", opacity: 0.22 },
+  { x: 38, z: 30, radius: 16, color: "#a6c58b", opacity: 0.26 },
+  { x: 4, z: 42, radius: 14, color: "#bbd69c", opacity: 0.2 },
+  { x: -4, z: -48, radius: 17, color: "#a7c68e", opacity: 0.22 },
+] as const
 
 const treePositions: ScenePosition[] = [
   { x: -19, z: -17 },
@@ -163,12 +172,13 @@ function City3DCanvas({
       className={cn("relative h-full min-h-0 overflow-hidden bg-[#9fbd91]", className)}
       data-city-renderer="3d"
       data-city-centerpiece="fountain"
+      data-city-terrain="seamless"
+      data-city-camera-mode="fixed-isometric"
       data-city-density-tier={projection.density}
       data-city-scenery-count={Math.min(projection.scenery.length, quality.decorationLimit)}
       data-city-arrange-mode={arranging || undefined}
       data-city-dragging-habit={draggingHabitId}
       data-city-home-zoom={projection.homeFrame.zoom}
-      data-city-min-camera-elevation={CITY_CAMERA_MIN_ELEVATION_DEGREES}
       data-render-tier={quality.tier}
       data-last-map-command={mapCommand?.action}
       data-city-focused-habit={mapCommand?.action === "focus-habit" ? mapCommand.habitId : undefined}
@@ -195,7 +205,7 @@ function City3DCanvas({
           gl.domElement.setAttribute("role", "img")
         }}
       >
-        <color attach="background" args={["#a9c79a"]} />
+        <color attach="background" args={["#b1ce92"]} />
         <ambientLight intensity={2.2} color="#fff6df" />
         <directionalLight
           castShadow={quality.shadows}
@@ -243,8 +253,8 @@ function City3DCanvas({
         />
       </Canvas>
       <div className="pointer-events-none absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 text-[11px] font-medium text-white/90 drop-shadow-sm sm:inset-x-5">
-        <span>{arranging ? "Drag a building to move it" : "Drag to explore"}</span>
-        <span className="hidden sm:inline">{arranging ? "Map navigation is paused" : "Scroll to zoom · Right-drag to rotate"}</span>
+        <span>{arranging ? "Drag a building to move it" : "Drag to move · Scroll to zoom"}</span>
+        <span className="hidden sm:inline">{arranging ? "Map navigation is paused" : "Fixed isometric view"}</span>
       </div>
     </div>
   )
@@ -265,6 +275,24 @@ function CityMapControls({
 }) {
   const { get, invalidate } = useThree()
   const controlsRef = useRef<React.ElementRef<typeof MapControls>>(null)
+  const constrainPan = () => {
+    const controls = controlsRef.current
+    if (!controls) return
+    const distance = Math.hypot(controls.target.x, controls.target.z)
+    if (distance > CITY_CAMERA_PAN_LIMIT) {
+      const scale = CITY_CAMERA_PAN_LIMIT / distance
+      const nextX = controls.target.x * scale
+      const nextZ = controls.target.z * scale
+      const deltaX = nextX - controls.target.x
+      const deltaZ = nextZ - controls.target.z
+      controls.target.x = nextX
+      controls.target.z = nextZ
+      const mapCamera = get().camera as OrthographicCamera
+      mapCamera.position.x += deltaX
+      mapCamera.position.z += deltaZ
+    }
+    invalidate()
+  }
 
   useEffect(() => {
     const controls = controlsRef.current
@@ -365,17 +393,14 @@ function CityMapControls({
       enableDamping={quality.damping}
       dampingFactor={quality.damping ? 0.08 : 0}
       enablePan
-      enableRotate
+      enableRotate={false}
       enableZoom
-      maxAzimuthAngle={Math.PI / 3}
-      maxDistance={65}
-      maxPolarAngle={CITY_CAMERA_MAX_POLAR_ANGLE}
       maxZoom={28}
-      minAzimuthAngle={-Math.PI / 3}
-      minDistance={20}
-      minPolarAngle={Math.PI / 3.5}
       minZoom={11}
+      mouseButtons={{ LEFT: MOUSE.PAN, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN }}
+      onChange={constrainPan}
       screenSpacePanning={false}
+      touches={{ ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_PAN }}
     />
   )
 }
@@ -440,18 +465,16 @@ function CityScene({
 function Terrain() {
   return (
     <group>
-      <mesh receiveShadow position={[0, -0.35, 0]}>
-        <boxGeometry args={[CITY_WORLD_LIMIT * 2, 0.7, CITY_WORLD_LIMIT * 2]} />
-        <meshStandardMaterial color="#83a873" roughness={1} />
-      </mesh>
-      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[CITY_WORLD_LIMIT * 2 - 0.35, CITY_WORLD_LIMIT * 2 - 0.35]} />
+      <mesh position={[0, -0.03, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[CITY_TERRAIN_SIZE, CITY_TERRAIN_SIZE]} />
         <meshStandardMaterial color="#b1ce92" roughness={1} />
       </mesh>
-      <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[CITY_WORLD_LIMIT * 2 - 0.75, CITY_WORLD_LIMIT * 2 - 0.75]} />
-        <meshStandardMaterial color="#b8d79c" transparent opacity={0.18} />
-      </mesh>
+      {terrainPatches.map(({ x, z, radius, color, opacity }) => (
+        <mesh key={`${x}-${z}`} position={[x, -0.015, z]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[radius, 32]} />
+          <meshStandardMaterial color={color} depthWrite={false} transparent opacity={opacity} roughness={1} />
+        </mesh>
+      ))}
     </group>
   )
 }
