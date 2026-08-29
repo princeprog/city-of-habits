@@ -1,18 +1,21 @@
 import { getBuildingModelPath } from "@/lib/city/scene-assets"
+import {
+  CITY_WORLD_LIMIT,
+  FOUNTAIN_CLEARANCE_RADIUS,
+  getCityDensityTier,
+  getCityHomeFrame,
+  resolveCityPlot,
+  toWorldPosition,
+  type CityDensityTier,
+  type CityHomeFrame,
+  type ScenePosition,
+} from "@/lib/city/city-layout"
+import { projectHabitScenery, type ProjectedCityScenery } from "@/lib/city/city-scenery"
 import { deriveGrowthStage, getHabitCheckIns } from "@/lib/city/rules"
-import { isPositionClearOfRoads } from "@/lib/city/road-layout"
-import type { CheckIn, DistrictId, Habit } from "@/types/city"
+import type { CheckIn, CityPosition, DistrictId, Habit } from "@/types/city"
 
-export const CITY_WORLD_SIZE = 44
-export const CITY_WORLD_LIMIT = CITY_WORLD_SIZE / 2
-export const CITY_PLOT_SPACING = 4
-export const FOUNTAIN_CLEARANCE_RADIUS = 5
-const ROAD_BUILDING_CLEARANCE = 1.8
-
-export interface ScenePosition {
-  x: number
-  z: number
-}
+export { CITY_WORLD_LIMIT, FOUNTAIN_CLEARANCE_RADIUS }
+export type { ScenePosition }
 
 export interface ProjectedCityBuilding {
   id: string
@@ -49,53 +52,15 @@ export interface CitySceneProjection {
   buildings: ProjectedCityBuilding[]
   connectors: ProjectedCityConnector[]
   landmarks: ProjectedCityLandmark[]
+  scenery: ProjectedCityScenery[]
+  density: CityDensityTier
+  homeFrame: CityHomeFrame
 }
 
 const stageIndex = ["planned", "started", "growing", "established"] as const
-const plotOffsets: ScenePosition[] = [
-  { x: 0, z: 0 },
-  { x: 1, z: 0 },
-  { x: -1, z: 0 },
-  { x: 0, z: 1 },
-  { x: 0, z: -1 },
-  { x: 1, z: 1 },
-  { x: -1, z: -1 },
-  { x: 1, z: -1 },
-  { x: -1, z: 1 },
-]
-
 function clampWorld(value: number) {
   const clamped = Math.max(-CITY_WORLD_LIMIT, Math.min(CITY_WORLD_LIMIT, value))
   return Math.round(clamped * 100) / 100
-}
-
-function toWorldPosition(position: Habit["position"]): ScenePosition {
-  return {
-    x: clampWorld((position.x / 100) * CITY_WORLD_SIZE - CITY_WORLD_LIMIT),
-    z: clampWorld((position.y / 100) * CITY_WORLD_SIZE - CITY_WORLD_LIMIT),
-  }
-}
-
-function resolvePlot(base: ScenePosition, occupied: ScenePosition[]) {
-  for (const offset of plotOffsets) {
-    const candidate = {
-      x: clampWorld(base.x + offset.x * CITY_PLOT_SPACING),
-      z: clampWorld(base.z + offset.z * CITY_PLOT_SPACING),
-    }
-    const overlapsFountain = Math.hypot(candidate.x, candidate.z) < FOUNTAIN_CLEARANCE_RADIUS
-    const overlapsRoad = !isPositionClearOfRoads(candidate, ROAD_BUILDING_CLEARANCE)
-    const hasCollision = occupied.some(
-      (plot) =>
-        Math.abs(plot.x - candidate.x) < CITY_PLOT_SPACING &&
-        Math.abs(plot.z - candidate.z) < CITY_PLOT_SPACING,
-    )
-    if (!overlapsFountain && !overlapsRoad && !hasCollision) return candidate
-  }
-
-  return {
-    x: clampWorld(base.x + CITY_PLOT_SPACING),
-    z: clampWorld(base.z + CITY_PLOT_SPACING),
-  }
 }
 
 function stableVariant(habitId: string) {
@@ -115,13 +80,18 @@ function matchesFilter(habit: Habit, query: string, district: DistrictId | "all"
 export function projectCityScene(
   habits: Habit[],
   checkIns: CheckIn[],
-  options: { query?: string; district?: DistrictId | "all" } = {},
+  options: {
+    query?: string
+    district?: DistrictId | "all"
+    positionOverrides?: ReadonlyMap<string, CityPosition>
+  } = {},
 ): CitySceneProjection {
   const positionsByHabit = new Map<string, ScenePosition>()
   const occupied: ScenePosition[] = []
 
   const buildings = habits.map((habit) => {
-    const position = resolvePlot(toWorldPosition(habit.position), occupied)
+    const storedPosition = options.positionOverrides?.get(habit.id) ?? habit.position
+    const position = resolveCityPlot(toWorldPosition(storedPosition), occupied, { preserveEdges: true })
     occupied.push(position)
     positionsByHabit.set(habit.id, position)
     const stage = deriveGrowthStage(getHabitCheckIns(habit.id, checkIns).length)
@@ -143,6 +113,19 @@ export function projectCityScene(
         : "dimmed",
     } satisfies ProjectedCityBuilding
   })
+
+  const sceneryByHabit = buildings.map((building) =>
+    projectHabitScenery({
+      habitId: building.habitId,
+      district: building.district,
+      position: building.position,
+      stage: building.stage,
+    }),
+  )
+  const scenery = Array.from(
+    { length: Math.max(0, ...sceneryByHabit.map((items) => items.length)) },
+    (_, detailIndex) => sceneryByHabit.flatMap((items) => items[detailIndex] ?? []),
+  ).flat()
 
   const landmarks = habits.flatMap((habit) => {
     const checkInCount = getHabitCheckIns(habit.id, checkIns).length
@@ -179,5 +162,8 @@ export function projectCityScene(
     }
   }
 
-  return { buildings, connectors, landmarks }
+  const density = getCityDensityTier(habits.length)
+  const homeFrame = getCityHomeFrame(buildings.map(({ position }) => position), density)
+
+  return { buildings, connectors, landmarks, scenery, density, homeFrame }
 }

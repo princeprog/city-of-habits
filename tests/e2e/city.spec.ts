@@ -428,6 +428,10 @@ test("renders the immersive city workspace with the map-only layout", async ({
   await expect(page.locator('[data-city-mode="immersive"]')).toBeVisible();
   await expect(page.locator('[data-city-renderer="3d"]'))
     .toHaveAttribute("data-city-centerpiece", "fountain");
+  await expect(page.locator('[data-city-renderer="3d"]')).toHaveAttribute(
+    "data-city-density-tier",
+    "seed",
+  );
   await expect(page.getByRole("region", { name: "Browse buildings" })).toHaveCount(0);
   await expect(page.getByText("This week", { exact: true })).toHaveCount(0);
   await expect(page.locator('[data-city-map-surface]')).toBeVisible();
@@ -439,6 +443,10 @@ test("renders the immersive city workspace with the map-only layout", async ({
 
   await page.getByRole("button", { name: /explore a sample city/i }).click();
   await expect(page.locator('[data-city-habit-count="6"]')).toBeVisible();
+  await expect(page.locator('[data-city-renderer="3d"]')).toHaveAttribute(
+    "data-city-density-tier",
+    "town",
+  );
   await expect(page.getByText("Your city is alive", { exact: true })).toBeVisible();
 });
 

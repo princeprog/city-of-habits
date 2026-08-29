@@ -8,6 +8,8 @@ import * as React from "react"
 import { Suspense, useEffect, useMemo, useRef, useState } from "react"
 
 import { getDecorationModelPath } from "@/lib/city/scene-assets"
+import type { CityHomeFrame } from "@/lib/city/city-layout"
+import type { ProjectedCityScenery } from "@/lib/city/city-scenery"
 import {
   getBrowserCityRenderQuality,
   type CityRenderQuality,
@@ -146,6 +148,8 @@ function City3DCanvas({
       className={cn("relative h-full min-h-0 overflow-hidden bg-[#9fbd91]", className)}
       data-city-renderer="3d"
       data-city-centerpiece="fountain"
+      data-city-density-tier={projection.density}
+      data-city-home-zoom={projection.homeFrame.zoom}
       data-render-tier={quality.tier}
       data-last-map-command={mapCommand?.action}
       data-city-focused-habit={mapCommand?.action === "focus-habit" ? mapCommand.habitId : undefined}
@@ -156,7 +160,16 @@ function City3DCanvas({
         shadows={quality.shadows}
         frameloop="demand"
         fallback={fallback}
-        camera={{ position: [30, 32, 30], zoom: 20, near: 0.1, far: 200 }}
+        camera={{
+          position: [
+            projection.homeFrame.target.x + 30,
+            32,
+            projection.homeFrame.target.z + 30,
+          ],
+          zoom: projection.homeFrame.zoom,
+          near: 0.1,
+          far: 200,
+        }}
         gl={{ antialias: true, powerPreference: "high-performance" }}
         onCreated={({ gl }) => {
           gl.domElement.setAttribute("aria-label", "Draggable 3D view of your living city")
@@ -181,12 +194,18 @@ function City3DCanvas({
             buildings={projection.buildings}
             connectors={projection.connectors}
             landmarks={projection.landmarks}
+            scenery={projection.scenery}
             quality={quality}
             selectedHabitId={selectedHabitId}
             onSelectHabit={onSelectHabit}
           />
         </Suspense>
-        <CityMapControls command={mapCommand} buildings={projection.buildings} quality={quality} />
+        <CityMapControls
+          command={mapCommand}
+          buildings={projection.buildings}
+          homeFrame={projection.homeFrame}
+          quality={quality}
+        />
       </Canvas>
       <div className="pointer-events-none absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 text-[11px] font-medium text-white/90 drop-shadow-sm sm:inset-x-5">
         <span>Drag to explore</span>
@@ -199,14 +218,28 @@ function City3DCanvas({
 function CityMapControls({
   command,
   buildings,
+  homeFrame,
   quality,
 }: {
   command?: CityMapCommand
   buildings: ProjectedCityBuilding[]
+  homeFrame: CityHomeFrame
   quality: CityRenderQuality
 }) {
   const { get, invalidate } = useThree()
   const controlsRef = useRef<React.ElementRef<typeof MapControls>>(null)
+
+  useEffect(() => {
+    const controls = controlsRef.current
+    if (!controls || command?.action === "focus-habit") return
+    const mapCamera = get().camera as OrthographicCamera
+    controls.target.set(homeFrame.target.x, 0, homeFrame.target.z)
+    mapCamera.position.set(homeFrame.target.x + 30, 32, homeFrame.target.z + 30)
+    mapCamera.zoom = homeFrame.zoom
+    mapCamera.updateProjectionMatrix()
+    controls.update()
+    invalidate()
+  }, [command?.action, get, homeFrame.target.x, homeFrame.target.z, homeFrame.zoom, invalidate])
 
   useEffect(() => {
     const controls = controlsRef.current
@@ -273,10 +306,10 @@ function CityMapControls({
     } else if (command.action === "zoom-out") {
       mapCamera.zoom = Math.max(11, mapCamera.zoom - 2)
     } else {
-      controls.target.set(0, 0, 0)
+      controls.target.set(homeFrame.target.x, 0, homeFrame.target.z)
       if (command.action === "reset") {
-        mapCamera.position.set(30, 32, 30)
-        mapCamera.zoom = 20
+        mapCamera.position.set(homeFrame.target.x + 30, 32, homeFrame.target.z + 30)
+        mapCamera.zoom = homeFrame.zoom
       }
     }
 
@@ -285,7 +318,7 @@ function CityMapControls({
     invalidate()
 
     return cancelAnimation
-  }, [buildings, command, get, invalidate])
+  }, [buildings, command, get, homeFrame.target.x, homeFrame.target.z, homeFrame.zoom, invalidate])
 
   return (
     <MapControls
@@ -313,6 +346,7 @@ function CityScene({
   buildings,
   connectors,
   landmarks,
+  scenery,
   quality,
   selectedHabitId,
   onSelectHabit,
@@ -320,6 +354,7 @@ function CityScene({
   buildings: ProjectedCityBuilding[]
   connectors: ProjectedCityConnector[]
   landmarks: ProjectedCityLandmark[]
+  scenery: ProjectedCityScenery[]
   quality: CityRenderQuality
   selectedHabitId?: string
   onSelectHabit?: (habitId: string) => void
@@ -329,6 +364,7 @@ function CityScene({
       <Terrain />
       <CityRoadNetwork />
       <Decorations limit={quality.decorationLimit} />
+      <NeighborhoodScenery items={scenery} limit={quality.decorationLimit} />
       {connectors.map((connector) => (
         <CityConnector key={connector.id} connector={connector} />
       ))}
@@ -379,6 +415,106 @@ function Decorations({ limit }: { limit: number }) {
           rotation={index % 2 ? Math.PI : 0}
           interactive={false}
         />
+      ))}
+    </group>
+  )
+}
+
+function NeighborhoodScenery({
+  items,
+  limit,
+}: {
+  items: ProjectedCityScenery[]
+  limit: number
+}) {
+  return (
+    <group data-city-scenery-count={Math.min(items.length, limit)}>
+      {items.slice(0, limit).map((item) => (
+        <SceneryItem key={item.id} item={item} />
+      ))}
+    </group>
+  )
+}
+
+function SceneryItem({ item }: { item: ProjectedCityScenery }) {
+  const color = districtColors[item.district]
+  const position: [number, number, number] = [item.position.x, 0, item.position.z]
+
+  if (item.kind === "tree" || item.kind === "planter" || item.kind === "light") {
+    const model = item.kind === "tree" ? "tree-small" : item.kind === "planter" ? "planter" : "light-square"
+    return (
+      <LocalModel
+        src={getDecorationModelPath(model)}
+        position={position}
+        targetHeight={item.kind === "tree" ? 1.15 : item.kind === "light" ? 0.8 : 0.5}
+        rotation={item.rotation}
+        interactive={false}
+      />
+    )
+  }
+
+  if (item.kind === "ground") {
+    return (
+      <mesh position={[item.position.x, 0.045, item.position.z]} rotation={[-Math.PI / 2, 0, Math.PI / 4]} receiveShadow>
+        <ringGeometry args={[1.48, 1.72, 4]} />
+        <meshStandardMaterial color={color} transparent opacity={0.34} roughness={1} />
+      </mesh>
+    )
+  }
+
+  if (item.kind === "path") {
+    return (
+      <mesh position={[item.position.x, 0.07, item.position.z]} rotation={[0, item.rotation, 0]} receiveShadow>
+        <boxGeometry args={[0.28, 0.06, 1.4]} />
+        <meshStandardMaterial color="#e7dcc1" roughness={1} />
+      </mesh>
+    )
+  }
+
+  if (item.kind === "bench") {
+    return (
+      <group position={[item.position.x, 0.1, item.position.z]} rotation={[0, item.rotation, 0]} scale={item.scale}>
+        <mesh position={[0, 0.22, 0]} castShadow>
+          <boxGeometry args={[0.78, 0.12, 0.24]} />
+          <meshStandardMaterial color="#a96f45" roughness={0.9} />
+        </mesh>
+        <mesh position={[0, 0.45, 0.09]} castShadow>
+          <boxGeometry args={[0.78, 0.3, 0.09]} />
+          <meshStandardMaterial color="#b97b4d" roughness={0.9} />
+        </mesh>
+      </group>
+    )
+  }
+
+  if (item.kind === "hedge") {
+    return (
+      <mesh position={[item.position.x, 0.27, item.position.z]} rotation={[0, item.rotation, 0]} castShadow>
+        <boxGeometry args={[1.05, 0.5, 0.34]} />
+        <meshStandardMaterial color="#5f8e62" roughness={1} />
+      </mesh>
+    )
+  }
+
+  if (item.kind === "rocks") {
+    return (
+      <group position={[item.position.x, 0.1, item.position.z]} rotation={[0, item.rotation, 0]}>
+        {[-0.25, 0.08, 0.3].map((offset, index) => (
+          <mesh key={offset} position={[offset, 0.14 + index * 0.03, index % 2 ? 0.12 : -0.08]} castShadow>
+            <dodecahedronGeometry args={[0.2 + index * 0.04, 0]} />
+            <meshStandardMaterial color="#8b9188" roughness={1} />
+          </mesh>
+        ))}
+      </group>
+    )
+  }
+
+  return (
+    <group position={[item.position.x, 0.08, item.position.z]} rotation={[0, item.rotation, 0]}>
+      {[-0.26, 0, 0.26].map((offset, index) => (
+        <mesh key={offset} position={[offset, 0.17, index % 2 ? 0.13 : -0.08]} castShadow>
+          <sphereGeometry args={[0.16, 8, 6]} />
+          <meshStandardMaterial color={index % 2 ? "#e5a4a1" : "#f0ce70"} roughness={0.9} />
+        </mesh>
       ))}
     </group>
   )

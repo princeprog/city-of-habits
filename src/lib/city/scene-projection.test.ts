@@ -86,6 +86,28 @@ describe("projectCityScene", () => {
     expect(scene.buildings.find(({ habitId }) => habitId === "walk")?.visibility).toBe("dimmed")
   })
 
+  it("previews draft position overrides without mutating stored habits", () => {
+    const storedHabit = habit({ id: "movable", position: { x: 25, y: 25 } })
+    const overrides = new Map([["movable", { x: 68.18, y: 68.18 }]])
+
+    const scene = projectCityScene([storedHabit], [], { positionOverrides: overrides })
+
+    expect(scene.buildings[0].position).toEqual({ x: 8, z: 8 })
+    expect(storedHabit.position).toEqual({ x: 25, y: 25 })
+  })
+
+  it("publishes density and a camera home frame from every rendered building", () => {
+    const scene = projectCityScene([
+      habit({ id: "one", position: { x: 34, y: 34 } }),
+      habit({ id: "two", position: { x: 66, y: 66 } }),
+      habit({ id: "three", position: { x: 66, y: 34 } }),
+    ], [])
+
+    expect(scene.density).toBe("neighborhood")
+    expect(scene.homeFrame.target).toEqual({ x: 0, z: 0 })
+    expect(scene.homeFrame.zoom).toBeGreaterThan(18)
+  })
+
   it("projects relationships into connectors between the resolved plots", () => {
     const scene = projectCityScene([
       habit({ id: "first", position: { x: 20, y: 20 }, relatedHabitIds: ["second"] }),
