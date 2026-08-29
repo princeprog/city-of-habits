@@ -406,10 +406,7 @@ test("renders the immersive city workspace with the map-only layout", async ({
   await expect(page.getByLabel("Search habits")).toBeVisible();
   const headerActions = page.getByRole("group", { name: "City header actions" });
   await expect(headerActions).toBeVisible();
-  await expect(headerActions.getByRole("link", { name: "Add habit" })).toHaveAttribute(
-    "href",
-    /\/habit\/new\/?$/,
-  );
+  await expect(headerActions.getByRole("button", { name: "Add habit" })).toBeVisible();
   await expect(headerActions.getByRole("button", { name: "More city actions" })).toBeVisible();
   await expect(page.locator('[data-city-mode="immersive"]')).toBeVisible();
   await expect(page.locator('[data-city-renderer="3d"]')).toBeVisible();
@@ -417,9 +414,34 @@ test("renders the immersive city workspace with the map-only layout", async ({
   await expect(page.getByText("This week", { exact: true })).toHaveCount(0);
   await expect(page.locator('[data-city-map-surface]')).toBeVisible();
 
+  await headerActions.getByRole("button", { name: "Add habit" }).click();
+  await expect(page.getByRole("dialog", { name: "Build a habit" })).toBeVisible();
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(page.getByRole("dialog", { name: "Build a habit" })).toHaveCount(0);
+
   await page.getByRole("button", { name: /explore a sample city/i }).click();
   await expect(page.locator('[data-city-habit-count="6"]')).toBeVisible();
   await expect(page.getByText("Your city is alive", { exact: true })).toBeVisible();
+});
+
+test("creates a habit from the city modal and reveals its building", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/city");
+
+  await page.getByRole("button", { name: "Add habit" }).first().click();
+  await page.getByLabel("What do you want to repeat?").fill("Read before bed");
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: /place the foundation/i }).click();
+
+  await expect(page).toHaveURL(/\/city\/?$/);
+  await expect(page.getByRole("dialog", { name: "Build a habit" })).toHaveCount(0);
+  await expect(page.locator('[data-city-habit-count="1"]')).toBeVisible();
+  await expect(page.getByText("Read before bed", { exact: true })).toBeVisible();
+  await expect(page.locator('[data-city-selected-habit="Read before bed"]')).toBeVisible();
+  await expect(page.locator('[data-last-map-command="focus-habit"]')).toBeVisible();
 });
 
 test("keeps city search and district filtering available on the map-only layout", async ({

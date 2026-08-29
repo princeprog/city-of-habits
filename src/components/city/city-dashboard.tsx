@@ -1,7 +1,6 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import {
@@ -19,12 +18,13 @@ import { toast } from "sonner"
 
 import { CityMap } from "@/components/city/city-map"
 import { BuildingIllustration } from "@/components/city/building-illustration"
+import { HabitCreationDialog, useHabitCreation } from "@/components/habit/habit-creation-dialog"
 import type {
   CityMapCommand,
   CityMapCommandAction,
 } from "@/components/city/city-3d-map"
 import { Badge } from "@/components/ui/badge"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { ButtonGroup } from "@/components/ui/button-group"
 import {
   Card,
@@ -71,6 +71,7 @@ const districtOrder = Object.keys(districtCatalog) as DistrictId[]
 
 export function CityDashboard() {
   const router = useRouter()
+  const { openCreateHabit } = useHabitCreation()
   const { habits, checkIns, hydrated, hydrate, loadSampleCity, toggleCheckIn } = useCityStore()
   const [district, setDistrict] = useState<"all" | DistrictId>("all")
   const [query, setQuery] = useState("")
@@ -105,6 +106,11 @@ export function CityDashboard() {
     toast(result ? "The building grew a little." : "Today's light was turned off.", {
       description: habit.name,
     })
+  }
+
+  const handleHabitCreated = () => {
+    setQuery("")
+    setDistrict("all")
   }
 
   if (!hydrated) return <CityDashboardSkeleton />
@@ -153,11 +159,11 @@ export function CityDashboard() {
             </InputGroup>
           </form>
           <ButtonGroup className="gap-2" aria-label="City header actions">
-            <Link href="/habit/new" className={cn(buttonVariants({ size: "lg" }), "h-10 bg-[#276d47] px-3 text-white hover:bg-[#1d5a39]") }>
+            <Button size="lg" onClick={openCreateHabit} className="h-10 bg-[#276d47] px-3 text-white hover:bg-[#1d5a39]">
               <Plus data-icon="inline-start" />
               <span className="hidden sm:inline">Add habit</span>
               <span className="sm:hidden">Add</span>
-            </Link>
+            </Button>
             <Button variant="outline" size="icon" aria-label="More city actions" className="h-10 w-10 border-[#d8dfd7] bg-white">
               <MoreVertical />
             </Button>
@@ -208,13 +214,10 @@ export function CityDashboard() {
                   </p>
                 ) : (
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <Link
-                      href="/habit/new"
-                      className={cn(buttonVariants({ size: "sm" }), "bg-[#276d47] text-white hover:bg-[#1d5a39]")}
-                    >
+                    <Button size="sm" onClick={openCreateHabit} className="bg-[#276d47] text-white hover:bg-[#1d5a39]">
                       Add a habit
                       <Plus data-icon="inline-end" />
-                    </Link>
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => void loadSampleCity()}>
                       Explore a sample city
                     </Button>
@@ -258,7 +261,7 @@ export function CityDashboard() {
             <Button variant="ghost" size="icon-sm" aria-label="Reset map" onClick={() => issueMapCommand("reset")}><RotateCcw /></Button>
           </div>
         </div>
-
+        <HabitCreationDialog onCreated={handleHabitCreated} />
       </section>
     </main>
   )
