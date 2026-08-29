@@ -21,8 +21,8 @@ test("creates a foundation and checks in from its detail page", async ({
     .first()
     .click();
   await page.getByLabel("What do you want to repeat?").fill("Read before bed");
-  await page.getByRole("button", { name: "Next" }).click();
-  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
   await page.getByRole("button", { name: /place the foundation/i }).click();
   await expect(page).toHaveURL(/\/habit\/?\?id=/);
   await page.getByRole("button", { name: /check in/i }).click();
@@ -432,8 +432,8 @@ test("creates a habit from the city modal and reveals its building", async ({
 
   await page.getByRole("button", { name: "Add habit" }).first().click();
   await page.getByLabel("What do you want to repeat?").fill("Read before bed");
-  await page.getByRole("button", { name: "Next" }).click();
-  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
   await page.getByRole("button", { name: /place the foundation/i }).click();
 
   await expect(page).toHaveURL(/\/city\/?$/);
@@ -442,6 +442,113 @@ test("creates a habit from the city modal and reveals its building", async ({
   await expect(page.getByText("Read before bed", { exact: true })).toBeVisible();
   await expect(page.locator('[data-city-selected-habit="Read before bed"]')).toBeVisible();
   await expect(page.locator('[data-last-map-command="focus-habit"]')).toBeVisible();
+});
+
+test("opens the same creation wizard from the mobile sidebar", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/city");
+  await page.locator('[data-sidebar="trigger"]').click();
+
+  const sidebar = page.getByRole("dialog", { name: "Sidebar" });
+  await expect(sidebar).toBeVisible();
+  await sidebar.getByRole("button", { name: "Add habit" }).click();
+
+  await expect(page.getByRole("dialog", { name: "Build a habit" })).toBeVisible();
+  await expect(sidebar).toBeHidden();
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(page).toHaveURL(/\/city\/?$/);
+});
+
+test("protects a dirty city draft and keeps the dialog accessible", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/city");
+  await page.getByRole("group", { name: "City header actions" }).getByRole("button", { name: "Add habit" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Build a habit" });
+  await dialog.getByLabel("What do you want to repeat?").fill("Journal");
+
+  const results = await new AxeBuilder({ page }).include('[role="dialog"]').analyze();
+  expect(
+    results.violations.filter(
+      (violation) => violation.impact === "serious" || violation.impact === "critical",
+    ),
+  ).toEqual([]);
+
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("alertdialog", { name: "Discard this foundation?" })).toBeVisible();
+  await page.getByRole("button", { name: "Keep editing" }).click();
+  await expect(dialog).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Discard draft" }).click();
+  await expect(dialog).toHaveCount(0);
+});
+
+test("keeps the creation dialog within the viewport at supported widths", async ({
+  page,
+}) => {
+  for (const viewport of [
+    { width: 360, height: 800 },
+    { width: 390, height: 844 },
+    { width: 768, height: 900 },
+    { width: 1024, height: 900 },
+    { width: 1440, height: 900 },
+    { width: 1572, height: 912 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/city");
+    await page.getByRole("group", { name: "City header actions" }).getByRole("button").first().click();
+
+    const dialog = page.getByRole("dialog", { name: "Build a habit" });
+    await expect(dialog).toBeVisible();
+    const geometry = await dialog.evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      return {
+        left: bounds.left,
+        right: bounds.right,
+        width: bounds.width,
+        height: bounds.height,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        documentWidth: document.documentElement.scrollWidth,
+        documentHeight: document.documentElement.scrollHeight,
+      };
+    });
+
+    expect(geometry.left).toBeGreaterThanOrEqual(0);
+    expect(geometry.right).toBeLessThanOrEqual(geometry.viewportWidth + 1);
+    expect(geometry.width).toBeLessThanOrEqual(geometry.viewportWidth);
+    expect(geometry.height).toBeLessThanOrEqual(geometry.viewportHeight);
+    expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
+    expect(geometry.documentHeight).toBeLessThanOrEqual(geometry.viewportHeight);
+    await dialog.getByRole("button", { name: /Cancel/ }).click();
+  }
+});
+
+test("creates a foundation locally after the city is taken offline", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/city", { waitUntil: "networkidle" });
+  await page.context().setOffline(true);
+
+  try {
+    await page.getByRole("group", { name: "City header actions" }).getByRole("button").first().click();
+    await page.getByLabel("What do you want to repeat?").fill("Offline reading");
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: /place the foundation/i }).click();
+
+    await expect(page.getByRole("dialog", { name: "Build a habit" })).toHaveCount(0);
+    await expect(page.locator('[data-city-habit-count="1"]')).toBeVisible();
+    await expect(page.locator('[data-city-selected-habit="Offline reading"]')).toBeVisible();
+  } finally {
+    await page.context().setOffline(false);
+  }
 });
 
 test("keeps city search and district filtering available on the map-only layout", async ({
@@ -574,7 +681,7 @@ test("renders every public route without serious accessibility violations", asyn
     "/offline",
   ]) {
     await page.goto(route);
-    await expect(page.locator("h1").first()).toBeVisible();
+    await expect(page.getByRole("heading").first()).toBeVisible();
     if (route === "/") {
       await expect
         .poll(() =>
