@@ -36,7 +36,7 @@ export function CityMap({ habits, checkIns, onSelectHabit, sample = false, class
       <CardContent className="p-0">
         <svg viewBox="0 0 100 100" className="block h-full min-h-[25rem] w-full" role="img" aria-labelledby={`${mapId}-map-title ${mapId}-map-desc`}>
           <title id={`${mapId}-map-title`}>{sample ? "A sample living city" : "Your living city"}</title>
-          <desc id={`${mapId}-map-desc`}>Buildings grow from repeated habits across six districts. Select a building to inspect its habit.</desc>
+          <desc id={`${mapId}-map-desc`}>A central fountain anchors the city. Buildings grow from repeated habits across six districts. Select a building to inspect its habit.</desc>
           <defs>
             <pattern id={`${mapId}-grid`} width="5" height="5" patternUnits="userSpaceOnUse">
               <path d="M 5 0 L 0 0 0 5" fill="none" stroke="var(--border)" strokeWidth="0.12" opacity="0.65" />
@@ -49,6 +49,13 @@ export function CityMap({ habits, checkIns, onSelectHabit, sample = false, class
           <rect width="100" height="100" fill={`url(#${mapId}-grid)`} />
           <path d="M0 58C18 49 25 63 41 54S69 37 100 47" fill="none" stroke="var(--chart-4)" strokeWidth="8" opacity="0.2" />
           <path d="M-4 41C18 50 25 45 42 55S71 72 104 61M-5 80C20 70 33 82 48 67S76 49 105 55" fill="none" stroke="var(--muted-foreground)" strokeWidth="1.2" strokeDasharray="1.8 1.8" opacity="0.45" />
+          <g data-city-centerpiece="fountain" transform="translate(50 50)" aria-hidden="true">
+            <circle r="5.2" fill="var(--muted)" stroke="var(--border)" strokeWidth="0.7" />
+            <circle r="3.25" fill="var(--primary)" opacity="0.18" />
+            <circle r="2.55" fill="var(--chart-2)" opacity="0.62" />
+            <circle r="1.05" fill="var(--background)" stroke="var(--border)" strokeWidth="0.55" />
+            <path d="M0-4.1V-0.8M-1.8-2.5 0-0.8 1.8-2.5" fill="none" stroke="var(--primary)" strokeLinecap="round" strokeWidth="0.55" />
+          </g>
           {districts.map(([id, district]) => {
             const centers: Record<string, [number, number]> = {
               body: [74, 76],
