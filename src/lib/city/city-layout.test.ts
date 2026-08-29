@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  CITY_BUILDING_EDGE_CLEARANCE,
+  CITY_CAMERA_MIN_ELEVATION_DEGREES,
   findNearestValidPlot,
   getCityDensityTier,
   getCityHomeFrame,
@@ -26,6 +28,14 @@ const habit = (id: string, district: Habit["district"], position = { x: 50, y: 5
 })
 
 describe("city layout", () => {
+  it("keeps camera tilt high enough for balanced land proportions", () => {
+    expect(CITY_CAMERA_MIN_ELEVATION_DEGREES).toBeGreaterThanOrEqual(22)
+  })
+
+  it("reserves enough edge clearance for the widest mature building", () => {
+    expect(CITY_BUILDING_EDGE_CLEARANCE).toBeGreaterThanOrEqual(6)
+  })
+
   it.each([
     [0, "seed"],
     [1, "settlement"],
@@ -51,6 +61,13 @@ describe("city layout", () => {
 
     expect(snapped).toEqual({ x: -4, z: -4 })
     expect(isValidCityPlot(snapped!, occupied)).toBe(true)
+  })
+
+  it("moves edge positions far enough inward for complete building footprints", () => {
+    const snapped = findNearestValidPlot({ x: 22, z: 22 })
+
+    expect(snapped).toEqual({ x: 16, z: 16 })
+    expect(isValidCityPlot(snapped!)).toBe(true)
   })
 
   it("creates a deterministic compact five-habit neighborhood", () => {

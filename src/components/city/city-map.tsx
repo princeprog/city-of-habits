@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { districtCatalog } from "@/lib/city/catalog"
 import { getHabitStage, projectCity } from "@/lib/city/rules"
+import { resolveCityPositions, toStoredPosition } from "@/lib/city/city-layout"
 import type { CheckIn, Habit } from "@/types/city"
 import { BuildingIllustration } from "@/components/city/building-illustration"
 
@@ -36,7 +37,12 @@ export function CityMap({
   selectedHabitId,
   lastMapCommand,
 }: CityMapProps) {
-  const elements = projectCity(habits, checkIns)
+  const resolvedPositions = resolveCityPositions(habits)
+  const displayHabits = habits.map((habit) => ({
+    ...habit,
+    position: toStoredPosition(resolvedPositions.get(habit.id)!),
+  }))
+  const elements = projectCity(displayHabits, checkIns)
   const districts = Object.entries(districtCatalog) as Array<[
     keyof typeof districtCatalog,
     (typeof districtCatalog)[keyof typeof districtCatalog],
@@ -93,13 +99,14 @@ export function CityMap({
             )
           })}
           {elements.filter((element) => element.kind === "path").map((element) => {
-            const sources = element.sourceHabitIds?.map((id) => habits.find((habit) => habit.id === id)).filter(Boolean) as Habit[]
+            const sources = element.sourceHabitIds?.map((id) => displayHabits.find((habit) => habit.id === id)).filter(Boolean) as Habit[]
             if (sources.length !== 2) return null
             return <path key={element.id} d={`M${sources[0].position.x} ${sources[0].position.y} Q${element.position.x} ${element.position.y - 8} ${sources[1].position.x} ${sources[1].position.y}`} fill="none" stroke="var(--primary)" strokeWidth="0.65" strokeDasharray="1.5 1.5" opacity="0.8" />
           })}
           {elements.filter((element) => element.kind === "building").map((element) => {
             const habit = habits.find((candidate) => candidate.id === element.sourceHabitId)
-            if (!habit) return null
+            const displayHabit = displayHabits.find((candidate) => candidate.id === element.sourceHabitId)
+            if (!habit || !displayHabit) return null
             const colorVariable: Record<string, string> = {
               coral: "var(--chart-1)",
               teal: "var(--chart-2)",
@@ -124,7 +131,7 @@ export function CityMap({
             return (
               <g
                 key={element.id}
-                transform={`translate(${habit.position.x - 6} ${habit.position.y - 9})`}
+                transform={`translate(${displayHabit.position.x - 6} ${displayHabit.position.y - 9})`}
                 style={style}
                 filter={`url(#${mapId}-shadow)`}
                 {...interactiveProps}

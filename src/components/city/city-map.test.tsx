@@ -40,4 +40,20 @@ describe("CityMap", () => {
     await user.keyboard("{Enter}")
     expect(onSelectHabit).toHaveBeenCalledWith(habit)
   })
+
+  it("keeps edge buildings fully inside the accessible land", () => {
+    const edgeHabit: Habit = {
+      ...sampleHabits[0],
+      position: { x: 100, y: 100 },
+      relatedHabitIds: [],
+    }
+
+    render(<CityMap habits={[edgeHabit]} checkIns={[]} onSelectHabit={() => undefined} />)
+
+    expect(screen.getByRole("button", { name: new RegExp(edgeHabit.name) })).toHaveAttribute(
+      "transform",
+      "translate(80.36 77.36)",
+    )
+    expect(edgeHabit.position).toEqual({ x: 100, y: 100 })
+  })
 })

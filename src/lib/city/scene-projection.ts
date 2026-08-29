@@ -4,8 +4,7 @@ import {
   FOUNTAIN_CLEARANCE_RADIUS,
   getCityDensityTier,
   getCityHomeFrame,
-  resolveCityPlot,
-  toWorldPosition,
+  resolveCityPositions,
   type CityDensityTier,
   type CityHomeFrame,
   type ScenePosition,
@@ -86,14 +85,15 @@ export function projectCityScene(
     positionOverrides?: ReadonlyMap<string, CityPosition>
   } = {},
 ): CitySceneProjection {
-  const positionsByHabit = new Map<string, ScenePosition>()
-  const occupied: ScenePosition[] = []
+  const positionsByHabit = resolveCityPositions(
+    habits.map((habit) => ({
+      id: habit.id,
+      position: options.positionOverrides?.get(habit.id) ?? habit.position,
+    })),
+  )
 
   const buildings = habits.map((habit) => {
-    const storedPosition = options.positionOverrides?.get(habit.id) ?? habit.position
-    const position = resolveCityPlot(toWorldPosition(storedPosition), occupied, { preserveEdges: true })
-    occupied.push(position)
-    positionsByHabit.set(habit.id, position)
+    const position = positionsByHabit.get(habit.id)!
     const stage = deriveGrowthStage(getHabitCheckIns(habit.id, checkIns).length)
 
     return {

@@ -9,6 +9,8 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react"
 
 import { getDecorationModelPath } from "@/lib/city/scene-assets"
 import {
+  CITY_CAMERA_MAX_POLAR_ANGLE,
+  CITY_CAMERA_MIN_ELEVATION_DEGREES,
   findNearestValidPlot,
   toStoredPosition,
   type CityHomeFrame,
@@ -166,6 +168,7 @@ function City3DCanvas({
       data-city-arrange-mode={arranging || undefined}
       data-city-dragging-habit={draggingHabitId}
       data-city-home-zoom={projection.homeFrame.zoom}
+      data-city-min-camera-elevation={CITY_CAMERA_MIN_ELEVATION_DEGREES}
       data-render-tier={quality.tier}
       data-last-map-command={mapCommand?.action}
       data-city-focused-habit={mapCommand?.action === "focus-habit" ? mapCommand.habitId : undefined}
@@ -366,7 +369,7 @@ function CityMapControls({
       enableZoom
       maxAzimuthAngle={Math.PI / 3}
       maxDistance={65}
-      maxPolarAngle={Math.PI / 2.25}
+      maxPolarAngle={CITY_CAMERA_MAX_POLAR_ANGLE}
       maxZoom={28}
       minAzimuthAngle={-Math.PI / 3}
       minDistance={20}

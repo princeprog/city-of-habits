@@ -20,15 +20,20 @@ const habit = (overrides: Partial<Habit> = {}): Habit => ({
 })
 
 describe("projectCityScene", () => {
-  it("maps stored positions into a centered bounded 3D world", () => {
-    const scene = projectCityScene([
+  it("keeps edge buildings fully on the land without changing stored positions", () => {
+    const habits = [
       habit({ id: "west", position: { x: 0, y: 0 } }),
       habit({ id: "east", position: { x: 100, y: 100 } }),
-    ], [])
+    ]
+    const scene = projectCityScene(habits, [])
 
     expect(scene.buildings.map(({ position }) => position)).toEqual([
-      { x: -22, z: -22 },
-      { x: 22, z: 22 },
+      { x: -16, z: -16 },
+      { x: 16, z: 16 },
+    ])
+    expect(habits.map(({ position }) => position)).toEqual([
+      { x: 0, y: 0 },
+      { x: 100, y: 100 },
     ])
   })
 

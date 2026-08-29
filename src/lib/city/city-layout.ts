@@ -6,6 +6,10 @@ export const CITY_WORLD_LIMIT = CITY_WORLD_SIZE / 2
 export const CITY_PLOT_SPACING = 4
 export const FOUNTAIN_CLEARANCE_RADIUS = 5
 export const ROAD_BUILDING_CLEARANCE = 1.8
+export const CITY_BUILDING_EDGE_CLEARANCE = 6
+export const CITY_CAMERA_MIN_ELEVATION_DEGREES = 24
+export const CITY_CAMERA_MAX_POLAR_ANGLE =
+  ((90 - CITY_CAMERA_MIN_ELEVATION_DEGREES) * Math.PI) / 180
 
 export type CityDensityTier = "seed" | "settlement" | "neighborhood" | "town" | "city"
 
@@ -69,7 +73,7 @@ export function isValidCityPlot(
   occupied: ScenePosition[] = [],
   options: { edgeMargin?: number } = {},
 ) {
-  const edgeMargin = options.edgeMargin ?? 2
+  const edgeMargin = options.edgeMargin ?? CITY_BUILDING_EDGE_CLEARANCE
   const insideBounds =
     Math.abs(position.x) <= CITY_WORLD_LIMIT - edgeMargin &&
     Math.abs(position.z) <= CITY_WORLD_LIMIT - edgeMargin
@@ -110,12 +114,26 @@ export function findNearestValidPlot(candidate: ScenePosition, occupied: ScenePo
 export function resolveCityPlot(
   candidate: ScenePosition,
   occupied: ScenePosition[] = [],
-  options: { preserveEdges?: boolean } = {},
 ) {
-  if (isValidCityPlot(candidate, occupied, { edgeMargin: options.preserveEdges ? 0 : 2 })) {
+  if (isValidCityPlot(candidate, occupied)) {
     return candidate
   }
   return findNearestValidPlot(candidate, occupied) ?? candidate
+}
+
+export function resolveCityPositions(
+  items: ReadonlyArray<{ id: string; position: CityPosition }>,
+) {
+  const resolved = new Map<string, ScenePosition>()
+  const occupied: ScenePosition[] = []
+
+  for (const item of items) {
+    const position = resolveCityPlot(toWorldPosition(item.position), occupied)
+    occupied.push(position)
+    resolved.set(item.id, position)
+  }
+
+  return resolved
 }
 
 export function getCompactArrangement(habits: Habit[]) {
