@@ -4,12 +4,18 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
-import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
 import { BuildingIllustration } from "@/components/city/building-illustration"
+import {
+  habitCreationDefaults,
+  habitCreationDistrictItems,
+  habitCreationColorItems,
+  habitCreationSchema,
+  type HabitCreationValues,
+} from "@/components/habit/habit-creation"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants, Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,43 +26,18 @@ import { Progress } from "@/components/ui/progress"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { buildingCatalog, colorTokens, districtCatalog } from "@/lib/city/catalog"
+import { buildingCatalog, districtCatalog } from "@/lib/city/catalog"
 import { cn } from "@/lib/utils"
 import { useCityStore } from "@/stores/city-store"
 import type { BuildingType } from "@/types/city"
-
-const formSchema = z.object({
-  name: z.string().trim().min(2, "Give the habit a name.").max(80, "Keep the name under 80 characters."),
-  district: z.enum(["body", "mind", "creative", "connection", "work", "recovery"]),
-  buildingType: z.enum(["park", "library", "workshop", "bridge", "tower", "lighthouse"]),
-  targetPerWeek: z.number().int().min(1).max(7),
-  colorToken: z.enum(["coral", "teal", "gold", "sky", "moss", "blue"]),
-  intention: z.string().trim().max(240, "Keep the intention under 240 characters.").optional(),
-})
-
-type HabitFormValues = z.infer<typeof formSchema>
-
-const districtItems = [
-  { label: "Choose a district", value: null },
-  ...Object.entries(districtCatalog).map(([value, district]) => ({ label: district.name, value })),
-]
-
-const colorItems = colorTokens.map((value) => ({ label: value[0].toUpperCase() + value.slice(1), value }))
 
 export function HabitForm() {
   const router = useRouter()
   const addHabit = useCityStore((state) => state.addHabit)
   const [isSaving, setIsSaving] = useState(false)
-  const form = useForm<HabitFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      district: "mind",
-      buildingType: "library",
-      targetPerWeek: 4,
-      colorToken: "sky",
-      intention: "",
-    },
+  const form = useForm<HabitCreationValues>({
+    resolver: zodResolver(habitCreationSchema),
+    defaultValues: habitCreationDefaults,
   })
   const district = useWatch({ control: form.control, name: "district" })
   const buildingType = useWatch({ control: form.control, name: "buildingType" })
@@ -64,7 +45,7 @@ export function HabitForm() {
   const target = useWatch({ control: form.control, name: "targetPerWeek" })
   const name = useWatch({ control: form.control, name: "name" })
 
-  async function onSubmit(values: HabitFormValues) {
+  async function onSubmit(values: HabitCreationValues) {
     setIsSaving(true)
     try {
       const habit = await addHabit(values)
@@ -104,9 +85,9 @@ export function HabitForm() {
                 <Field data-invalid={Boolean(form.formState.errors.district)}>
                   <FieldLabel htmlFor="habit-district">Where does it belong?</FieldLabel>
                   <Controller name="district" control={form.control} render={({ field, fieldState }) => <>
-                    <Select items={districtItems} value={field.value} onValueChange={(value) => field.onChange(value)}>
+                    <Select items={habitCreationDistrictItems} value={field.value} onValueChange={(value) => field.onChange(value)}>
                       <SelectTrigger id="habit-district" aria-invalid={fieldState.invalid} className="w-full"><SelectValue /></SelectTrigger>
-                      <SelectContent alignItemWithTrigger={false}><SelectGroup>{districtItems.filter((item) => item.value).map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectGroup></SelectContent>
+                      <SelectContent alignItemWithTrigger={false}><SelectGroup>{habitCreationDistrictItems.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectGroup></SelectContent>
                     </Select>
                     <FieldDescription>{districtCatalog[district].description}</FieldDescription>
                     <FieldError errors={[fieldState.error]} />
@@ -134,9 +115,9 @@ export function HabitForm() {
 
                 <Field>
                   <FieldLabel htmlFor="habit-color">Choose a city color</FieldLabel>
-                  <Controller name="colorToken" control={form.control} render={({ field }) => <Select items={colorItems} value={field.value} onValueChange={(value) => field.onChange(value)}>
-                    <SelectTrigger id="habit-color" className="w-full"><SelectValue /></SelectTrigger>
-                    <SelectContent alignItemWithTrigger={false}><SelectGroup>{colorItems.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectGroup></SelectContent>
+                  <Controller name="colorToken" control={form.control} render={({ field }) => <Select items={habitCreationColorItems} value={field.value} onValueChange={(value) => field.onChange(value)}>
+                  <SelectTrigger id="habit-color" className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent alignItemWithTrigger={false}><SelectGroup>{habitCreationColorItems.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectGroup></SelectContent>
                   </Select>} />
                   <FieldDescription>This is how you will recognize the building at a glance.</FieldDescription>
                 </Field>
