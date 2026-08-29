@@ -22,6 +22,8 @@ import { CITY_WORLD_LIMIT, projectCityScene } from "@/lib/city/scene-projection"
 import type { CheckIn, DistrictId, Habit } from "@/types/city"
 import { cn } from "@/lib/utils"
 import { CityFountain } from "@/components/city/city-fountain"
+import { CityRoadNetwork } from "@/components/city/city-road-network"
+import { isPositionClearOfRoads } from "@/lib/city/road-layout"
 
 const tileColors: Record<string, string> = {
   coral: "#d98f6e",
@@ -94,8 +96,7 @@ const treePositions: ScenePosition[] = [
   { x: -19, z: -1 },
   { x: 19, z: 1 },
 ]
-
-const path = getDecorationModelPath("path-long")
+const roadsideTreePositions = treePositions.filter(isPositionClearOfRoads)
 
 export interface City3DMapProps {
   habits: Habit[]
@@ -326,7 +327,7 @@ function CityScene({
   return (
     <group>
       <Terrain />
-      <RoadNetwork />
+      <CityRoadNetwork />
       <Decorations limit={quality.decorationLimit} />
       {connectors.map((connector) => (
         <CityConnector key={connector.id} connector={connector} />
@@ -366,53 +367,16 @@ function Terrain() {
   )
 }
 
-function RoadNetwork() {
-  const roads = [
-    { position: [0, 0.12, 0] as const, rotation: 0, size: [43, 1.1] as const },
-    { position: [0, 0.13, 0] as const, rotation: Math.PI / 2, size: [43, 1.1] as const },
-    { position: [-11, 0.14, 0] as const, rotation: 0, size: [43, 0.65] as const },
-    { position: [11, 0.14, 0] as const, rotation: 0, size: [43, 0.65] as const },
-    { position: [0, 0.14, -11] as const, rotation: Math.PI / 2, size: [43, 0.65] as const },
-    { position: [0, 0.14, 11] as const, rotation: Math.PI / 2, size: [43, 0.65] as const },
-  ]
-
-  return (
-    <group>
-      {roads.map((road, index) => (
-        <mesh key={index} position={road.position} rotation={[0, road.rotation, 0]} receiveShadow>
-          <boxGeometry args={[road.size[0], 0.08, road.size[1]]} />
-          <meshStandardMaterial color={index < 2 ? "#c7bda5" : "#d2c9b4"} roughness={0.9} />
-        </mesh>
-      ))}
-    </group>
-  )
-}
-
 function Decorations({ limit }: { limit: number }) {
   return (
     <group>
-      {treePositions.slice(0, limit).map((position, index) => (
+      {roadsideTreePositions.slice(0, limit).map((position, index) => (
         <LocalModel
           key={`${position.x}-${position.z}`}
           src={getDecorationModelPath(index % 4 === 0 ? "tree-large" : "tree-small")}
           position={[position.x, 0, position.z]}
           targetHeight={index % 4 === 0 ? 2.15 : 1.45}
           rotation={index % 2 ? Math.PI : 0}
-          interactive={false}
-        />
-      ))}
-      {[
-        [-14, -11],
-        [14, -11],
-        [-14, 11],
-        [14, 11],
-      ].map(([x, z]) => (
-        <LocalModel
-          key={`${x}-${z}`}
-          src={path}
-          position={[x, 0.03, z]}
-          targetHeight={0.6}
-          rotation={Math.PI / 2}
           interactive={false}
         />
       ))}

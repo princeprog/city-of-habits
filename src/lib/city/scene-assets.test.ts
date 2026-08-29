@@ -42,4 +42,10 @@ describe("city scene assets", () => {
       ),
     ).toBe(true)
   })
+
+  it("does not expose the height-scaled suburban path as a city decoration", () => {
+    expect(Object.values(CITY_MODEL_PATHS.decorations)).not.toContain(
+      "/models/city/suburban/path-long.glb",
+    )
+  })
 })

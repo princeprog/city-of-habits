@@ -61,6 +61,20 @@ describe("projectCityScene", () => {
     expect(centeredHabit.position).toEqual({ x: 50, y: 50 })
   })
 
+  it("keeps projected buildings clear of the compact street grid", () => {
+    const roadAlignedHabit = habit({ position: { x: 50, y: 66 } })
+
+    const scene = projectCityScene([roadAlignedHabit], [])
+    const projectedPosition = scene.buildings[0].position
+    const roadOffsets = [-11, 0, 11]
+    const clearsRoads =
+      roadOffsets.every((offset) => Math.abs(projectedPosition.x - offset) > 1.8) &&
+      roadOffsets.every((offset) => Math.abs(projectedPosition.z - offset) > 1.8)
+
+    expect(clearsRoads).toBe(true)
+    expect(roadAlignedHabit.position).toEqual({ x: 50, y: 66 })
+  })
+
   it("keeps every building while dimming query and district mismatches", () => {
     const scene = projectCityScene([
       habit({ id: "read", name: "Read before bed", district: "mind" }),

@@ -4,7 +4,6 @@ type DecorationId =
   | "bridge-pillar"
   | "chimney-basic"
   | "light-square"
-  | "path-long"
   | "planter"
   | "road-bend"
   | "road-bridge"
@@ -32,7 +31,6 @@ export const CITY_MODEL_PATHS = {
     "bridge-pillar": model("roads", "bridge-pillar"),
     "chimney-basic": model("industrial", "chimney-basic"),
     "light-square": model("roads", "light-square"),
-    "path-long": model("suburban", "path-long"),
     planter: model("suburban", "planter"),
     "road-bend": model("roads", "road-bend"),
     "road-bridge": model("roads", "road-bridge"),
