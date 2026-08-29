@@ -1,0 +1,11 @@
+City of Habits 3D city assets
+
+The curated GLB files in this directory are from Kenney's City Kit Commercial,
+City Kit Suburban, City Kit Industrial, and City Kit Roads packs.
+
+Created and distributed by Kenney (https://www.kenney.nl/).
+Licensed under Creative Commons Zero (CC0 1.0):
+https://creativecommons.org/publicdomain/zero/1.0/
+
+The assets may be used for personal, educational, and commercial purposes.
+Attribution is not required. We credit Kenney here as a courtesy.

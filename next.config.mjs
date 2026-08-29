@@ -12,6 +12,7 @@ const nextConfig = {
   output: 'export',
   trailingSlash: true,
   turbopack: {},
+  transpilePackages: ['three'],
   images: {
     unoptimized: true,
   },
