@@ -60,13 +60,15 @@ const targetHeights: Record<Habit["buildingType"], number> = {
   lighthouse: 3.6,
 }
 
+const CITY_TERRAIN_COLOR = "#91b879"
+
 const terrainPatches = [
-  { x: -36, z: -28, radius: 15, color: "#a8c88f", opacity: 0.3 },
-  { x: 30, z: -34, radius: 18, color: "#b9d49b", opacity: 0.24 },
-  { x: -42, z: 24, radius: 20, color: "#b7d198", opacity: 0.22 },
-  { x: 38, z: 30, radius: 16, color: "#a6c58b", opacity: 0.26 },
-  { x: 4, z: 42, radius: 14, color: "#bbd69c", opacity: 0.2 },
-  { x: -4, z: -48, radius: 17, color: "#a7c68e", opacity: 0.22 },
+  { x: -36, z: -28, radius: 15, color: "#7faa68", opacity: 0.16 },
+  { x: 30, z: -34, radius: 18, color: "#a3c98b", opacity: 0.14 },
+  { x: -42, z: 24, radius: 20, color: "#86b16d", opacity: 0.14 },
+  { x: 38, z: 30, radius: 16, color: "#9dc284", opacity: 0.14 },
+  { x: 4, z: 42, radius: 14, color: "#79a660", opacity: 0.12 },
+  { x: -4, z: -48, radius: 17, color: "#a8cc90", opacity: 0.12 },
 ] as const
 
 const treePositions: ScenePosition[] = [
@@ -169,10 +171,11 @@ function City3DCanvas({
 
   return (
     <div
-      className={cn("relative h-full min-h-0 overflow-hidden bg-[#9fbd91]", className)}
+      className={cn("relative h-full min-h-0 overflow-hidden bg-[#91b879]", className)}
       data-city-renderer="3d"
       data-city-centerpiece="fountain"
       data-city-terrain="seamless"
+      data-city-terrain-color={CITY_TERRAIN_COLOR}
       data-city-camera-mode="fixed-isometric"
       data-city-density-tier={projection.density}
       data-city-scenery-count={Math.min(projection.scenery.length, quality.decorationLimit)}
@@ -205,7 +208,7 @@ function City3DCanvas({
           gl.domElement.setAttribute("role", "img")
         }}
       >
-        <color attach="background" args={["#b1ce92"]} />
+        <color attach="background" args={[CITY_TERRAIN_COLOR]} />
         <ambientLight intensity={2.2} color="#fff6df" />
         <directionalLight
           castShadow={quality.shadows}
@@ -467,7 +470,7 @@ function Terrain() {
     <group>
       <mesh position={[0, -0.03, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[CITY_TERRAIN_SIZE, CITY_TERRAIN_SIZE]} />
-        <meshStandardMaterial color="#b1ce92" roughness={1} />
+        <meshStandardMaterial color={CITY_TERRAIN_COLOR} roughness={1} />
       </mesh>
       {terrainPatches.map(({ x, z, radius, color, opacity }) => (
         <mesh key={`${x}-${z}`} position={[x, -0.015, z]} rotation={[-Math.PI / 2, 0, 0]}>

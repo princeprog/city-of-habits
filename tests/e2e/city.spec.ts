@@ -459,6 +459,8 @@ test("renders the immersive city workspace with the map-only layout", async ({
   await expect(page.locator('[data-city-renderer="3d"]'))
     .toHaveAttribute("data-city-terrain", "seamless");
   await expect(page.locator('[data-city-renderer="3d"]'))
+    .toHaveAttribute("data-city-terrain-color", "#91b879");
+  await expect(page.locator('[data-city-renderer="3d"]'))
     .toHaveAttribute("data-city-camera-mode", "fixed-isometric");
   await expect(page.locator('[data-city-renderer="3d"]')).toHaveAttribute(
     "data-city-density-tier",
