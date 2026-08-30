@@ -25,6 +25,14 @@ export type Mood = "low" | "steady" | "good" | "energized"
 export type ThemeMode = "light" | "dark" | "system"
 export type LegacyThemeMode = "paper" | "night"
 export type MotionMode = "system" | "reduced" | "full"
+export type CityTimeOfDay = "day" | "dusk" | "night"
+export type CityTimePreview = "auto" | CityTimeOfDay
+export type CityActivity = "clear" | "lively" | "steady" | "quiet" | "rainy"
+
+export interface CityVisualState {
+  timeOfDay: CityTimeOfDay
+  activity: CityActivity
+}
 
 export interface CityPosition {
   x: number

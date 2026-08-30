@@ -5,6 +5,9 @@ import type {
   DistrictId,
   GrowthStage,
   Habit,
+  CityActivity,
+  CityTimeOfDay,
+  CityTimePreview,
 } from "@/types/city"
 import { getCompactHabitPosition } from "@/lib/city/city-layout"
 
@@ -67,6 +70,29 @@ export function getAtmosphere(habits: Habit[], checkIns: CheckIn[]) {
   if (daysAgo <= 2) return "steady" as const
   if (daysAgo <= 6) return "quiet" as const
   return "rainy" as const
+}
+
+export function resolveCityTimeOfDay(
+  date = new Date(),
+  preview: CityTimePreview = "auto",
+): CityTimeOfDay {
+  if (preview !== "auto") return preview
+
+  const minutes = date.getHours() * 60 + date.getMinutes()
+  if (minutes >= 17 * 60 && minutes < 20 * 60) return "dusk"
+  if (minutes >= 6 * 60 && minutes < 17 * 60) return "day"
+  return "night"
+}
+
+export function getCityVisualState(
+  activity: CityActivity,
+  date = new Date(),
+  preview: CityTimePreview = "auto",
+) {
+  return {
+    timeOfDay: resolveCityTimeOfDay(date, preview),
+    activity,
+  } as const
 }
 
 export function getWeekStart(date = new Date()) {

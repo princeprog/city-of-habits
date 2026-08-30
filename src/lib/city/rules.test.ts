@@ -2,9 +2,34 @@ import { describe, expect, it } from "vitest"
 
 import { isValidCityPlot, toWorldPosition } from "@/lib/city/city-layout"
 import { deriveGrowthStage, getDaysAgo, getStablePosition, getWeekDateKeys } from "@/lib/city/rules"
+import * as cityRules from "@/lib/city/rules"
 import type { Habit } from "@/types/city"
 
 describe("city growth projections", () => {
+  it.each([
+    ["2026-08-30T05:59:00", "night"],
+    ["2026-08-30T06:00:00", "day"],
+    ["2026-08-30T16:59:00", "day"],
+    ["2026-08-30T17:00:00", "dusk"],
+    ["2026-08-30T19:59:00", "dusk"],
+    ["2026-08-30T20:00:00", "night"],
+  ])("maps local time %s to %s", (time, expected) => {
+    const resolveCityTimeOfDay = (cityRules as typeof cityRules & {
+      resolveCityTimeOfDay?: (date: Date, preview?: "auto" | "day" | "dusk" | "night") => string
+    }).resolveCityTimeOfDay
+
+    expect(resolveCityTimeOfDay?.(new Date(time))).toBe(expected)
+  })
+
+  it("lets a temporary lighting preview override the automatic time", () => {
+    const resolveCityTimeOfDay = (cityRules as typeof cityRules & {
+      resolveCityTimeOfDay?: (date: Date, preview?: "auto" | "day" | "dusk" | "night") => string
+    }).resolveCityTimeOfDay
+
+    expect(resolveCityTimeOfDay?.(new Date("2026-08-30T12:00:00"), "night")).toBe("night")
+    expect(resolveCityTimeOfDay?.(new Date("2026-08-30T22:00:00"), "day")).toBe("day")
+  })
+
   it.each([
     [0, "planned"],
     [1, "started"],
