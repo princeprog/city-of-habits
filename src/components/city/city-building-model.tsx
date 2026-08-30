@@ -46,7 +46,7 @@ export function CityBuildingModel({
   })
   const night = visualState.timeOfDay !== "day"
   const lightIntensity = quietMode ? 0.45 : visualState.timeOfDay === "dusk" ? 0.68 : 0.95
-  const glow = recentlyChecked || stageChanged ? 1 : 0
+  const glow = !quietMode && (recentlyChecked || stageChanged) ? 1 : 0
 
   return (
     <group ref={revealRef}>

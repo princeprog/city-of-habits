@@ -547,7 +547,40 @@ function CityWeather({
           ))}
         </group>
       )}
+      {lighting.activityMotion && !lighting.isRainy && (
+        <AmbientMotes animated={!reducedMotion && !quietMode} />
+      )}
       {lighting.isRainy && <Rainfall animated={!reducedMotion && !quietMode} opacity={lighting.rainOpacity} />}
+    </group>
+  )
+}
+
+function AmbientMotes({ animated }: { animated: boolean }) {
+  const motes = useMemo(() => Array.from({ length: 10 }, (_, index) => ({
+    x: -16 + (index * 13) % 32,
+    z: -14 + (index * 19) % 28,
+    y: 1.5 + (index % 4) * 0.38,
+  })), [])
+  const groupRef = useRef<Group>(null)
+  const elapsedRef = useRef(0)
+
+  useFrame(({ invalidate }) => {
+    if (!animated) return
+    elapsedRef.current += 0.018
+    groupRef.current?.children.forEach((mote, index) => {
+      mote.position.y = motes[index].y + Math.sin(elapsedRef.current + index) * 0.12
+    })
+    invalidate()
+  })
+
+  return (
+    <group ref={groupRef}>
+      {motes.map((mote, index) => (
+        <mesh key={index} position={[mote.x, mote.y, mote.z]}>
+          <sphereGeometry args={[0.045, 8, 6]} />
+          <meshBasicMaterial color="#f5d58c" transparent opacity={0.32} />
+        </mesh>
+      ))}
     </group>
   )
 }
