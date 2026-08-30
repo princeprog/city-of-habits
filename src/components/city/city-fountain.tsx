@@ -19,7 +19,7 @@ const overflowPositions = [
   [0, -0.52],
 ] as const
 
-export function CityFountain() {
+export function CityFountain({ intensity = 0.82 }: { intensity?: number }) {
   return (
     <group position={[0, 0, 0]}>
       <mesh receiveShadow position={[0, 0.22, 0]}>
@@ -39,7 +39,7 @@ export function CityFountain() {
         <cylinderGeometry args={[1.92, 2.08, 0.22, 40]} />
         <meshStandardMaterial color={STONE} roughness={0.88} />
       </mesh>
-      <WaterSurface radius={1.82} height={0.77} />
+      <WaterSurface radius={1.82} height={0.77} intensity={intensity} />
 
       <mesh castShadow receiveShadow position={[0, 1.17, 0]}>
         <cylinderGeometry args={[0.48, 0.68, 1.02, 16]} />
@@ -49,7 +49,7 @@ export function CityFountain() {
         <cylinderGeometry args={[1.08, 0.92, 0.26, 32]} />
         <meshStandardMaterial color={STONE} roughness={0.86} />
       </mesh>
-      <WaterSurface radius={0.84} height={1.76} />
+      <WaterSurface radius={0.84} height={1.76} intensity={intensity} />
 
       <mesh castShadow receiveShadow position={[0, 2.03, 0]}>
         <cylinderGeometry args={[0.28, 0.4, 0.65, 14]} />
@@ -59,26 +59,26 @@ export function CityFountain() {
         <cylinderGeometry args={[0.72, 0.58, 0.22, 28]} />
         <meshStandardMaterial color={STONE} roughness={0.86} />
       </mesh>
-      <WaterSurface radius={0.53} height={2.45} />
+      <WaterSurface radius={0.53} height={2.45} intensity={intensity} />
 
       <mesh position={[0, 2.93, 0]}>
         <cylinderGeometry args={[0.045, 0.075, 0.96, 8]} />
-        <WaterMaterial opacity={0.74} />
+        <WaterMaterial opacity={0.74} intensity={intensity} />
       </mesh>
       <mesh position={[0, 3.43, 0]}>
         <sphereGeometry args={[0.09, 10, 8]} />
-        <WaterMaterial opacity={0.68} />
+        <WaterMaterial opacity={0.68} intensity={intensity} />
       </mesh>
 
       {overflowPositions.map(([x, z]) => (
         <group key={`${x}-${z}`}>
           <mesh position={[x, 2.08, z]}>
             <cylinderGeometry args={[0.025, 0.04, 0.68, 7]} />
-            <WaterMaterial opacity={0.6} />
+            <WaterMaterial opacity={0.6} intensity={intensity} />
           </mesh>
           <mesh position={[x * 1.65, 1.22, z * 1.65]}>
             <cylinderGeometry args={[0.028, 0.045, 0.72, 7]} />
-            <WaterMaterial opacity={0.55} />
+            <WaterMaterial opacity={0.55} intensity={intensity} />
           </mesh>
         </group>
       ))}
@@ -90,21 +90,21 @@ export function CityFountain() {
   )
 }
 
-function WaterSurface({ radius, height }: { radius: number; height: number }) {
+function WaterSurface({ radius, height, intensity }: { radius: number; height: number; intensity: number }) {
   return (
     <mesh position={[0, height, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <circleGeometry args={[radius, 36]} />
-      <WaterMaterial opacity={0.82} />
+      <WaterMaterial opacity={0.82} intensity={intensity} />
     </mesh>
   )
 }
 
-function WaterMaterial({ opacity }: { opacity: number }) {
+function WaterMaterial({ opacity, intensity }: { opacity: number; intensity: number }) {
   return (
     <meshStandardMaterial
       color={WATER}
       emissive="#2f8581"
-      emissiveIntensity={0.08}
+      emissiveIntensity={0.08 * intensity}
       metalness={0.04}
       opacity={opacity}
       roughness={0.2}

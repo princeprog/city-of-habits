@@ -66,6 +66,24 @@ describe("projectCityScene", () => {
     ])
   })
 
+  it("keeps earned geometry when a habit is paused or archived", () => {
+    const checkIns: CheckIn[] = Array.from({ length: 12 }, (_, index) => ({
+      id: `earned-${index}`,
+      habitId: index === 0 ? "paused" : "archived",
+      localDate: `2026-07-${String(index + 1).padStart(2, "0")}`,
+      completedAt: "2026-08-30T08:00:00.000Z",
+    }))
+    const scene = projectCityScene([
+      habit({ id: "paused", buildingType: "park", status: "paused", position: { x: 25, y: 25 } }),
+      habit({ id: "archived", buildingType: "bridge", status: "archived", position: { x: 60, y: 60 } }),
+    ], checkIns)
+
+    expect(scene.buildings.map(({ status, stage, presentation }) => ({ status, stage, presentation }))).toEqual([
+      { status: "paused", stage: 1, presentation: "park-landscape" },
+      { status: "archived", stage: 2, presentation: "road-bridge" },
+    ])
+  })
+
   it("keeps edge buildings fully on the land without changing stored positions", () => {
     const habits = [
       habit({ id: "west", position: { x: 0, y: 0 } }),

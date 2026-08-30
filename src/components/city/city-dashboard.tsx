@@ -54,6 +54,11 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -82,13 +87,14 @@ import {
 } from "@/lib/city/city-layout"
 import {
   getAtmosphere,
+  getCityVisualState,
   getHabitCheckIns,
   getHabitStage,
   getLocalDateKey,
   getWeeklyCheckInCount,
 } from "@/lib/city/rules"
 import { useCityStore } from "@/stores/city-store"
-import type { CityPosition, DistrictId, Habit } from "@/types/city"
+import type { CityPosition, CityTimePreview, DistrictId, Habit } from "@/types/city"
 
 const City3DMap = dynamic(
   () => import("@/components/city/city-3d-map").then((module) => module.City3DMap),
@@ -110,7 +116,7 @@ const districtOrder = Object.keys(districtCatalog) as DistrictId[]
 export function CityDashboard() {
   const router = useRouter()
   const { openCreateHabit } = useHabitCreation()
-  const { habits, checkIns, hydrated, hydrate, loadSampleCity, toggleCheckIn, updateHabitPositions } = useCityStore()
+  const { habits, checkIns, preferences, hydrated, hydrate, loadSampleCity, toggleCheckIn, updateHabitPositions } = useCityStore()
   const [district, setDistrict] = useState<"all" | DistrictId>("all")
   const [query, setQuery] = useState("")
   const [selectedHabitId, setSelectedHabitId] = useState<string>()
@@ -123,10 +129,28 @@ export function CityDashboard() {
   const [arrangementSaving, setArrangementSaving] = useState(false)
   const [discardArrangementOpen, setDiscardArrangementOpen] = useState(false)
   const [arrangementAnnouncement, setArrangementAnnouncement] = useState("")
+  const [timePreview, setTimePreview] = useState<CityTimePreview>("auto")
+  const [now, setNow] = useState<Date>()
+  const [recentlyCheckedHabitId, setRecentlyCheckedHabitId] = useState<string>()
+  const [stageChangedHabitId, setStageChangedHabitId] = useState<string>()
+  const checkInGlowTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const stageRevealTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     if (!hydrated) void hydrate()
   }, [hydrate, hydrated])
+
+  useEffect(() => {
+    const updateClock = () => setNow(new Date())
+    updateClock()
+    const timer = window.setInterval(updateClock, 60_000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  useEffect(() => () => {
+    if (checkInGlowTimer.current) clearTimeout(checkInGlowTimer.current)
+    if (stageRevealTimer.current) clearTimeout(stageRevealTimer.current)
+  }, [])
 
   const selectedHabit = useMemo(
     () => habits.find((habit) => habit.id === selectedHabitId),
@@ -139,6 +163,10 @@ export function CityDashboard() {
   ).length
   const atmosphere = getAtmosphere(habits, checkIns)
   const atmosphereMeta = atmosphereCopy[atmosphere]
+  const visualState = useMemo(
+    () => getCityVisualState(atmosphere, now ?? new Date(), timePreview),
+    [atmosphere, now, timePreview],
+  )
   const arrangementDirty = useMemo(
     () => positionsDiffer(arrangementOriginal, arrangementDraft),
     [arrangementDraft, arrangementOriginal],
@@ -158,7 +186,22 @@ export function CityDashboard() {
   }
 
   const handleCheckIn = async (habit: Habit) => {
+    const previousStage = stageIndex.indexOf(getHabitStage(habit.id, checkIns))
     const result = await toggleCheckIn(habit.id)
+    if (checkInGlowTimer.current) clearTimeout(checkInGlowTimer.current)
+    if (stageRevealTimer.current) clearTimeout(stageRevealTimer.current)
+    if (result) {
+      setRecentlyCheckedHabitId(habit.id)
+      checkInGlowTimer.current = setTimeout(() => setRecentlyCheckedHabitId(undefined), 800)
+      const nextStage = stageIndex.indexOf(getHabitStage(habit.id, useCityStore.getState().checkIns))
+      if (nextStage > previousStage) {
+        setStageChangedHabitId(habit.id)
+        stageRevealTimer.current = setTimeout(() => setStageChangedHabitId(undefined), 450)
+      }
+    } else {
+      setRecentlyCheckedHabitId(undefined)
+      setStageChangedHabitId(undefined)
+    }
     toast(result ? "The building grew a little." : "Today's light was turned off.", {
       description: habit.name,
     })
@@ -316,6 +359,9 @@ export function CityDashboard() {
       data-city-selected-habit={selectedHabit?.name}
       data-city-arrange-mode={isArranging || undefined}
       data-city-arrangement-dirty={isArranging ? arrangementDirty : undefined}
+      data-city-time-of-day={visualState.timeOfDay}
+      data-city-activity={visualState.activity}
+      data-city-time-preview={timePreview}
     >
       <header
         className="flex min-h-16 flex-wrap items-center gap-3 border-b bg-background px-3 py-3 md:h-16 md:flex-nowrap md:px-5"
@@ -379,6 +425,20 @@ export function CityDashboard() {
                     <Move3D />
                     Arrange city
                   </DropdownMenuItem>
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>Preview lighting</DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuRadioGroup
+                        value={timePreview}
+                        onValueChange={(value) => setTimePreview(value as CityTimePreview)}
+                      >
+                        <DropdownMenuRadioItem value="auto">Auto</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="day">Day</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="dusk">Dusk</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="night">Night</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
                   <DropdownMenuItem onClick={() => router.push("/settings")}>
                     <Settings />
                     Settings
@@ -409,6 +469,11 @@ export function CityDashboard() {
             onArrangementIssue={setArrangementAnnouncement}
             onSelectHabit={selectHabit}
             mapCommand={mapCommand}
+            visualState={visualState}
+            quietMode={preferences.quietMode}
+            reducedMotion={preferences.motion === "reduced"}
+            recentlyCheckedHabitId={recentlyCheckedHabitId}
+            stageChangedHabitId={stageChangedHabitId}
             fallback={
               <CityMap
                 habits={fallbackHabits}

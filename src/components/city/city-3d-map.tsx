@@ -1,6 +1,6 @@
 "use client"
 
-import { Canvas, type ThreeEvent, useThree } from "@react-three/fiber"
+import { Canvas, type ThreeEvent, useFrame, useThree } from "@react-three/fiber"
 import { MapControls, useGLTF } from "@react-three/drei"
 import { Box3, Group, MOUSE, Plane, TOUCH, Vector3 } from "three"
 import type { OrthographicCamera } from "three"
@@ -8,6 +8,7 @@ import * as React from "react"
 import { Suspense, useEffect, useMemo, useRef, useState } from "react"
 
 import { getDecorationModelPath } from "@/lib/city/scene-assets"
+import { getCityLightingProfile } from "@/lib/city/city-atmosphere"
 import {
   CITY_CAMERA_PAN_LIMIT,
   CITY_TERRAIN_SIZE,
@@ -27,7 +28,13 @@ import type {
   ScenePosition,
 } from "@/lib/city/scene-projection"
 import { projectCityScene } from "@/lib/city/scene-projection"
-import type { CheckIn, CityPosition, DistrictId, Habit } from "@/types/city"
+import type {
+  CheckIn,
+  CityPosition,
+  CityVisualState,
+  DistrictId,
+  Habit,
+} from "@/types/city"
 import { cn } from "@/lib/utils"
 import { CityBuildingModel } from "@/components/city/city-building-model"
 import { CityFountain } from "@/components/city/city-fountain"
@@ -123,6 +130,11 @@ export interface City3DMapProps {
   mapCommand?: CityMapCommand
   fallback?: React.ReactNode
   className?: string
+  visualState?: CityVisualState
+  quietMode?: boolean
+  reducedMotion?: boolean
+  recentlyCheckedHabitId?: string
+  stageChangedHabitId?: string
 }
 
 export type CityMapCommandAction = "zoom-in" | "zoom-out" | "center" | "reset"
@@ -153,8 +165,16 @@ function City3DCanvas({
   mapCommand,
   fallback,
   className,
+  visualState = { timeOfDay: "day", activity: "clear" },
+  quietMode = false,
+  reducedMotion = false,
+  recentlyCheckedHabitId,
+  stageChangedHabitId,
 }: City3DMapProps) {
   const quality = useCityQuality()
+  const systemReducedMotion = useReducedMotionPreference()
+  const effectiveReducedMotion = reducedMotion || systemReducedMotion
+  const lighting = useMemo(() => getCityLightingProfile(visualState), [visualState])
   const [draggingHabitId, setDraggingHabitId] = useState<string>()
   const projection = useMemo(
     () => projectCityScene(habits, checkIns, { query, district, positionOverrides }),
@@ -177,6 +197,12 @@ function City3DCanvas({
       data-render-tier={quality.tier}
       data-last-map-command={mapCommand?.action}
       data-city-focused-habit={mapCommand?.action === "focus-habit" ? mapCommand.habitId : undefined}
+      data-city-time-of-day={visualState.timeOfDay}
+      data-city-activity={visualState.activity}
+      data-city-rain={lighting.isRainy || undefined}
+      data-city-quiet-mode={quietMode || undefined}
+      data-city-reduced-motion={effectiveReducedMotion || undefined}
+      data-city-building-presentations={projection.buildings.map(({ presentation }) => presentation).join(",") || undefined}
     >
       <Canvas
         orthographic
@@ -200,12 +226,12 @@ function City3DCanvas({
           gl.domElement.setAttribute("role", "img")
         }}
       >
-        <color attach="background" args={[CITY_TERRAIN_COLOR]} />
-        <ambientLight intensity={2.2} color="#fff6df" />
+        <color attach="background" args={[lighting.skyColor]} />
+        <ambientLight intensity={lighting.ambientIntensity} color={lighting.ambientColor} />
         <directionalLight
           castShadow={quality.shadows}
-          color="#fff1d1"
-          intensity={3.5}
+          color={lighting.directionalColor}
+          intensity={lighting.directionalIntensity}
           position={[18, 28, 12]}
           shadow-mapSize={[1024, 1024]}
           shadow-camera-left={-30}
@@ -220,6 +246,12 @@ function City3DCanvas({
             landmarks={projection.landmarks}
             scenery={projection.scenery}
             quality={quality}
+            visualState={visualState}
+            lighting={lighting}
+            quietMode={quietMode}
+            reducedMotion={effectiveReducedMotion}
+            recentlyCheckedHabitId={recentlyCheckedHabitId}
+            stageChangedHabitId={stageChangedHabitId}
             selectedHabitId={selectedHabitId}
             onSelectHabit={onSelectHabit}
             arranging={arranging}
@@ -413,6 +445,12 @@ function CityScene({
   onDragStart,
   onDragMove,
   onDragEnd,
+  visualState,
+  lighting,
+  quietMode,
+  reducedMotion,
+  recentlyCheckedHabitId,
+  stageChangedHabitId,
 }: {
   buildings: ProjectedCityBuilding[]
   connectors: ProjectedCityConnector[]
@@ -426,17 +464,24 @@ function CityScene({
   onDragStart: (habitId: string) => void
   onDragMove: (habitId: string, position: ScenePosition) => void
   onDragEnd: () => void
+  visualState: CityVisualState
+  lighting: ReturnType<typeof getCityLightingProfile>
+  quietMode: boolean
+  reducedMotion: boolean
+  recentlyCheckedHabitId?: string
+  stageChangedHabitId?: string
 }) {
   return (
     <group>
-      <Terrain />
+      <Terrain color={lighting.terrainColor} rainy={lighting.isRainy} />
+      <CityWeather lighting={lighting} reducedMotion={reducedMotion} quietMode={quietMode} />
       <CityRoadNetwork />
       <Decorations limit={quality.decorationLimit} />
       <NeighborhoodScenery items={scenery} limit={quality.decorationLimit} />
       {connectors.map((connector) => (
         <CityConnector key={connector.id} connector={connector} />
       ))}
-      <CityFountain />
+      <CityFountain intensity={lighting.fountainIntensity} />
       {landmarks.map((landmark) => (
         <CityLandmark key={landmark.id} landmark={landmark} />
       ))}
@@ -451,23 +496,86 @@ function CityScene({
           onDragStart={onDragStart}
           onDragMove={onDragMove}
           onDragEnd={onDragEnd}
+          visualState={visualState}
+          quietMode={quietMode}
+          reducedMotion={reducedMotion}
+          recentlyChecked={building.habitId === recentlyCheckedHabitId}
+          stageChanged={building.habitId === stageChangedHabitId}
         />
       ))}
     </group>
   )
 }
 
-function Terrain() {
+function Terrain({ color, rainy }: { color: string; rainy: boolean }) {
   return (
     <group>
       <mesh position={[0, -0.03, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[CITY_TERRAIN_SIZE, CITY_TERRAIN_SIZE]} />
-        <meshStandardMaterial color={CITY_TERRAIN_COLOR} roughness={1} />
+        <meshStandardMaterial color={color} roughness={1} />
       </mesh>
       {terrainPatches.map(({ x, z, radius, color, opacity }) => (
         <mesh key={`${x}-${z}`} position={[x, -0.015, z]} rotation={[-Math.PI / 2, 0, 0]}>
           <circleGeometry args={[radius, 32]} />
-          <meshStandardMaterial color={color} depthWrite={false} transparent opacity={opacity} roughness={1} />
+          <meshStandardMaterial color={rainy ? "#77928d" : color} depthWrite={false} transparent opacity={rainy ? opacity * 0.62 : opacity} roughness={1} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function CityWeather({
+  lighting,
+  reducedMotion,
+  quietMode,
+}: {
+  lighting: ReturnType<typeof getCityLightingProfile>
+  reducedMotion: boolean
+  quietMode: boolean
+}) {
+  if (!lighting.isRainy && lighting.cloudOpacity === 0) return null
+
+  return (
+    <group>
+      {lighting.cloudOpacity > 0 && (
+        <group position={[0, 8.5, 0]}>
+          {[-10, 0, 10].map((x, index) => (
+            <mesh key={x} position={[x, index % 2 ? 0.4 : 0, index % 2 ? -2 : 2]}>
+              <sphereGeometry args={[4.8, 16, 8]} />
+              <meshStandardMaterial color="#6d7f86" transparent opacity={lighting.cloudOpacity * (quietMode ? 0.7 : 1)} roughness={1} />
+            </mesh>
+          ))}
+        </group>
+      )}
+      {lighting.isRainy && <Rainfall animated={!reducedMotion && !quietMode} opacity={lighting.rainOpacity} />}
+    </group>
+  )
+}
+
+function Rainfall({ animated, opacity }: { animated: boolean; opacity: number }) {
+  const drops = useMemo(() => Array.from({ length: 34 }, (_, index) => ({
+    x: -18 + (index * 17) % 36,
+    z: -18 + (index * 11) % 36,
+    height: 1.1 + (index % 4) * 0.2,
+  })), [])
+  const offsetRef = useRef(0)
+  const groupRef = useRef<Group>(null)
+
+  useFrame(({ invalidate }) => {
+    if (!animated) return
+    offsetRef.current = (offsetRef.current + 0.018) % 1
+    groupRef.current?.children.forEach((drop, index) => {
+      drop.position.y = -((offsetRef.current + index / drops.length) % 1) * 5
+    })
+    invalidate()
+  })
+
+  return (
+    <group ref={groupRef} position={[0, 7, 0]}>
+      {drops.map((drop, index) => (
+        <mesh key={index} position={[drop.x, -(index / drops.length) * 5, drop.z]}>
+          <boxGeometry args={[0.025, drop.height, 0.025]} />
+          <meshBasicMaterial color="#c9e2e7" transparent opacity={opacity} />
         </mesh>
       ))}
     </group>
@@ -600,6 +708,11 @@ function CityBuilding({
   onDragStart,
   onDragMove,
   onDragEnd,
+  visualState,
+  quietMode,
+  reducedMotion,
+  recentlyChecked,
+  stageChanged,
 }: {
   building: ProjectedCityBuilding
   selected: boolean
@@ -609,10 +722,16 @@ function CityBuilding({
   onDragStart: (habitId: string) => void
   onDragMove: (habitId: string, position: ScenePosition) => void
   onDragEnd: () => void
+  visualState: CityVisualState
+  quietMode: boolean
+  reducedMotion: boolean
+  recentlyChecked: boolean
+  stageChanged: boolean
 }) {
   const [hovered, setHovered] = useState(false)
   const color = tileColors[building.colorToken] ?? districtColors[building.district]
-  const opacity = building.visibility === "visible" ? 1 : 0.28
+  const statusOpacity = building.status === "paused" ? 0.7 : building.status === "archived" ? 0.55 : 1
+  const opacity = (building.visibility === "visible" ? 1 : 0.28) * statusOpacity
   const handleSelect = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation()
     onSelect?.(building.habitId)
@@ -677,7 +796,16 @@ function CityBuilding({
         <boxGeometry args={[2.35, 0.12, 2.35]} />
         <meshStandardMaterial color={color} transparent opacity={0.9 * opacity} roughness={0.9} />
       </mesh>
-      <CityBuildingModel building={building} color={color} opacity={opacity} />
+      <CityBuildingModel
+        building={building}
+        color={color}
+        opacity={opacity}
+        visualState={visualState}
+        quietMode={quietMode}
+        reducedMotion={reducedMotion}
+        recentlyChecked={recentlyChecked}
+        stageChanged={stageChanged}
+      />
     </group>
   )
 }
@@ -793,6 +921,20 @@ function useCityQuality() {
   }, [])
 
   return quality
+}
+
+function useReducedMotionPreference() {
+  const [reduced, setReduced] = useState(false)
+
+  useEffect(() => {
+    const query = window.matchMedia?.("(prefers-reduced-motion: reduce)")
+    const update = () => setReduced(query?.matches ?? false)
+    update()
+    query?.addEventListener("change", update)
+    return () => query?.removeEventListener("change", update)
+  }, [])
+
+  return reduced
 }
 
 class City3DErrorBoundary extends React.Component<

@@ -4,6 +4,7 @@ import { useGLTF } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { Box3, Group, Vector3 } from "three"
 import { useEffect, useMemo, useRef } from "react"
+import type { RefObject } from "react"
 
 import { getDecorationModelPath } from "@/lib/city/scene-assets"
 import type { ProjectedCityBuilding } from "@/lib/city/scene-projection"
@@ -23,8 +24,6 @@ interface CityBuildingModelProps {
 const STONE = "#e6ddc9"
 const STONE_DARK = "#b8aa90"
 const SOIL = "#7e6549"
-const LEAF = "#5f9b58"
-const LEAF_DARK = "#3f764a"
 const GLASS = "#9fc7cf"
 const NIGHT_LIGHT = "#ffd98a"
 
@@ -38,17 +37,19 @@ export function CityBuildingModel({
   recentlyChecked = false,
   stageChanged = false,
 }: CityBuildingModelProps) {
-  const reveal = useBuildingReveal({
+  const revealRef = useRef<Group>(null)
+  useBuildingReveal({
     active: stageChanged,
     reducedMotion,
     quietMode,
+    groupRef: revealRef,
   })
   const night = visualState.timeOfDay !== "day"
   const lightIntensity = quietMode ? 0.45 : visualState.timeOfDay === "dusk" ? 0.68 : 0.95
   const glow = recentlyChecked ? 1 : 0
 
   return (
-    <group scale={[reveal, reveal, reveal]}>
+    <group ref={revealRef}>
       {building.presentation === "park-landscape" && (
         <ParkModel
           building={building}
@@ -193,7 +194,7 @@ function LibraryModel({ building, color, opacity, night, lightIntensity, glow }:
             <coneGeometry args={[width * 0.78, stage >= 3 ? 0.58 : 0.4, 4]} />
             <meshStandardMaterial color={color} transparent opacity={opacity} roughness={0.74} />
           </mesh>
-          {[-0.65, -0.22, 0.22, 0.65].map((x, index) => (
+          {[-0.65, -0.22, 0.22, 0.65].map((x) => (
             <mesh key={`column-${x}`} position={[x * Math.min(1, width / 2), 0.58, -0.84]} castShadow>
               <cylinderGeometry args={[0.07, 0.09, 1.08, 8]} />
               <meshStandardMaterial color={color} transparent opacity={opacity} roughness={0.8} />
@@ -561,27 +562,35 @@ function LocalModel({
   return <primitive object={clone} position={position} rotation={[0, rotation, 0]} scale={scale} />
 }
 
-function useBuildingReveal({ active, reducedMotion, quietMode }: { active: boolean; reducedMotion: boolean; quietMode: boolean }) {
-  const progress = useRef(active && !reducedMotion && !quietMode ? 0 : 1)
+function useBuildingReveal({
+  active,
+  reducedMotion,
+  quietMode,
+  groupRef,
+}: {
+  active: boolean
+  reducedMotion: boolean
+  quietMode: boolean
+  groupRef: RefObject<Group | null>
+}) {
   const startedAt = useRef<number | null>(null)
 
   useEffect(() => {
     if (!active || reducedMotion || quietMode) {
-      progress.current = 1
+      groupRef.current?.scale.setScalar(1)
       startedAt.current = null
       return
     }
-    progress.current = 0.86
+    groupRef.current?.scale.setScalar(0.86)
     startedAt.current = performance.now()
-  }, [active, quietMode, reducedMotion])
+  }, [active, groupRef, quietMode, reducedMotion])
 
   useFrame(({ invalidate }) => {
     if (startedAt.current === null) return
     const elapsed = performance.now() - startedAt.current
-    progress.current = Math.min(1, 0.86 + elapsed / 450 * 0.14)
+    const nextProgress = Math.min(1, 0.86 + elapsed / 450 * 0.14)
+    groupRef.current?.scale.setScalar(nextProgress)
     invalidate()
-    if (progress.current >= 1) startedAt.current = null
+    if (nextProgress >= 1) startedAt.current = null
   })
-
-  return progress.current
 }
