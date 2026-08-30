@@ -20,6 +20,52 @@ const habit = (overrides: Partial<Habit> = {}): Habit => ({
 })
 
 describe("projectCityScene", () => {
+  it("routes every selected building type to its matching 3D presentation", () => {
+    const scene = projectCityScene([
+      habit({ id: "park", buildingType: "park", position: { x: 20, y: 20 } }),
+      habit({ id: "library", buildingType: "library", position: { x: 35, y: 35 } }),
+      habit({ id: "workshop", buildingType: "workshop", position: { x: 50, y: 20 } }),
+      habit({ id: "bridge", buildingType: "bridge", position: { x: 65, y: 35 } }),
+      habit({ id: "tower", buildingType: "tower", position: { x: 80, y: 20 } }),
+      habit({ id: "lighthouse", buildingType: "lighthouse", position: { x: 80, y: 80 } }),
+    ], [])
+
+    expect(scene.buildings.map((building) => ({
+      type: building.buildingType,
+      presentation: (building as typeof building & { presentation?: string }).presentation,
+    }))).toEqual([
+      { type: "park", presentation: "park-landscape" },
+      { type: "library", presentation: "civic-library" },
+      { type: "workshop", presentation: "industrial-workshop" },
+      { type: "bridge", presentation: "road-bridge" },
+      { type: "tower", presentation: "city-tower" },
+      { type: "lighthouse", presentation: "coastal-lighthouse" },
+    ])
+  })
+
+  it("tracks milestone count and uses the 7, 30, and 100 check-in thresholds", () => {
+    const checkInsFor = (count: number): CheckIn[] => Array.from({ length: count }, (_, index) => ({
+      id: `check-in-${index}`,
+      habitId: "milestones",
+      localDate: `2026-08-${String((index % 28) + 1).padStart(2, "0")}`,
+      completedAt: "2026-08-30T08:00:00.000Z",
+    }))
+
+    const scenes = [7, 30, 100].map((count) => projectCityScene(
+      [habit({ id: "milestones", position: { x: 50, y: 50 } })],
+      checkInsFor(count),
+    ))
+
+    expect(scenes.map((scene) => ({
+      landmarkStage: scene.landmarks[0]?.stage,
+      milestoneCount: (scene.buildings[0] as typeof scene.buildings[number] & { milestoneCount?: number }).milestoneCount,
+    }))).toEqual([
+      { landmarkStage: 0, milestoneCount: 1 },
+      { landmarkStage: 1, milestoneCount: 2 },
+      { landmarkStage: 2, milestoneCount: 3 },
+    ])
+  })
+
   it("keeps edge buildings fully on the land without changing stored positions", () => {
     const habits = [
       habit({ id: "west", position: { x: 0, y: 0 } }),

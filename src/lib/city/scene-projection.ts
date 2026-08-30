@@ -10,7 +10,7 @@ import {
   type ScenePosition,
 } from "@/lib/city/city-layout"
 import { projectHabitScenery, type ProjectedCityScenery } from "@/lib/city/city-scenery"
-import { deriveGrowthStage, getHabitCheckIns } from "@/lib/city/rules"
+import { deriveGrowthStage, getHabitCheckIns, getMilestoneCount } from "@/lib/city/rules"
 import type { CheckIn, CityPosition, DistrictId, Habit } from "@/types/city"
 
 export { CITY_WORLD_LIMIT, FOUNTAIN_CLEARANCE_RADIUS }
@@ -27,9 +27,19 @@ export interface ProjectedCityBuilding {
   stage: number
   position: ScenePosition
   modelPath: string
+  presentation: CityBuildingPresentation
+  milestoneCount: number
   variant: number
   visibility: "visible" | "dimmed"
 }
+
+export type CityBuildingPresentation =
+  | "park-landscape"
+  | "civic-library"
+  | "industrial-workshop"
+  | "road-bridge"
+  | "city-tower"
+  | "coastal-lighthouse"
 
 export interface ProjectedCityConnector {
   id: string
@@ -57,6 +67,14 @@ export interface CitySceneProjection {
 }
 
 const stageIndex = ["planned", "started", "growing", "established"] as const
+const buildingPresentations: Record<Habit["buildingType"], CityBuildingPresentation> = {
+  park: "park-landscape",
+  library: "civic-library",
+  workshop: "industrial-workshop",
+  bridge: "road-bridge",
+  tower: "city-tower",
+  lighthouse: "coastal-lighthouse",
+}
 function clampWorld(value: number) {
   const clamped = Math.max(-CITY_WORLD_LIMIT, Math.min(CITY_WORLD_LIMIT, value))
   return Math.round(clamped * 100) / 100
@@ -107,6 +125,8 @@ export function projectCityScene(
       stage: stageIndex.indexOf(stage),
       position,
       modelPath: getBuildingModelPath(habit.buildingType, stableVariant(habit.id)),
+      presentation: buildingPresentations[habit.buildingType],
+      milestoneCount: getMilestoneCount(habit.id, checkIns),
       variant: stableVariant(habit.id),
       visibility: matchesFilter(habit, options.query ?? "", options.district ?? "all")
         ? "visible"
@@ -140,7 +160,7 @@ export function projectCityScene(
         x: clampWorld(position.x + 1.4),
         z: clampWorld(position.z - 1.4),
       },
-      stage: checkInCount >= 30 ? 2 : checkInCount >= 15 ? 1 : 0,
+      stage: checkInCount >= 100 ? 2 : checkInCount >= 30 ? 1 : 0,
       label: `${habit.name} milestone landmark`,
     } satisfies ProjectedCityLandmark]
   })
