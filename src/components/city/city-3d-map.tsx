@@ -29,6 +29,7 @@ import type {
 import { projectCityScene } from "@/lib/city/scene-projection"
 import type { CheckIn, CityPosition, DistrictId, Habit } from "@/types/city"
 import { cn } from "@/lib/utils"
+import { CityBuildingModel } from "@/components/city/city-building-model"
 import { CityFountain } from "@/components/city/city-fountain"
 import { CityRoadNetwork } from "@/components/city/city-road-network"
 import { isPositionClearOfRoads } from "@/lib/city/road-layout"
@@ -49,15 +50,6 @@ const districtColors: Record<DistrictId, string> = {
   connection: "#d5bc76",
   work: "#6f91b1",
   recovery: "#9b91bd",
-}
-
-const targetHeights: Record<Habit["buildingType"], number> = {
-  park: 2.1,
-  library: 3.1,
-  workshop: 2.7,
-  bridge: 2.4,
-  tower: 5.2,
-  lighthouse: 3.6,
 }
 
 const CITY_TERRAIN_COLOR = "#91b879"
@@ -685,20 +677,7 @@ function CityBuilding({
         <boxGeometry args={[2.35, 0.12, 2.35]} />
         <meshStandardMaterial color={color} transparent opacity={0.9 * opacity} roughness={0.9} />
       </mesh>
-      <LocalModel
-        src={building.modelPath}
-        position={[0, 0.12, 0]}
-        targetHeight={targetHeights[building.buildingType] + building.stage * 0.28}
-        rotation={building.variant ? Math.PI / 2 : 0}
-        opacity={opacity}
-        interactive
-      />
-      {building.stage >= 2 && (
-        <mesh position={[0, targetHeights[building.buildingType] + 0.25, 0]}>
-          <sphereGeometry args={[0.12 + building.stage * 0.03, 12, 8]} />
-          <meshBasicMaterial color="#fff0a3" transparent opacity={0.8 * opacity} />
-        </mesh>
-      )}
+      <CityBuildingModel building={building} color={color} opacity={opacity} />
     </group>
   )
 }
