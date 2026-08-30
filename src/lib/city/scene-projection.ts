@@ -28,7 +28,7 @@ export interface ProjectedCityBuilding {
   position: ScenePosition
   modelPath: string
   presentation: CityBuildingPresentation
-  milestoneCount: number
+  milestoneCount: 0 | 1 | 2 | 3
   variant: number
   visibility: "visible" | "dimmed"
 }

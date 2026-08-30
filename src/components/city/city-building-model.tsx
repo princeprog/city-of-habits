@@ -46,7 +46,7 @@ export function CityBuildingModel({
   })
   const night = visualState.timeOfDay !== "day"
   const lightIntensity = quietMode ? 0.45 : visualState.timeOfDay === "dusk" ? 0.68 : 0.95
-  const glow = recentlyChecked ? 1 : 0
+  const glow = recentlyChecked || stageChanged ? 1 : 0
 
   return (
     <group ref={revealRef}>
@@ -162,10 +162,16 @@ function ParkModel({ building, color, opacity, night, lightIntensity, glow }: Bu
               />
             </>
           )}
-          {stage >= 3 && <GardenPavilion color={color} opacity={opacity} />}
+          {(stage >= 3 || building.milestoneCount >= 2) && <GardenPavilion color={color} opacity={opacity} />}
         </>
       )}
       {stage >= 2 && <GardenPath color={color} opacity={opacity} />}
+      {night && <LocalModel
+        src={getDecorationModelPath("light-square")}
+        position={[0.72, 0.38, -0.68]}
+        targetHeight={0.72}
+        opacity={opacity}
+      />}
       {night && <NightLight position={[0.72, 0.62, -0.68]} opacity={opacity} intensity={lightIntensity} glow={glow} />}
     </group>
   )
@@ -206,7 +212,7 @@ function LibraryModel({ building, color, opacity, night, lightIntensity, glow }:
             const y = index >= 3 ? 1.06 : 1.1
             return <Window key={`window-${index}`} position={[x, y, z]} color={color} lit={night} opacity={opacity} intensity={lightIntensity + glow * 0.4} />
           })}
-          {stage >= 3 && <mesh position={[0, 0.45 + height + 0.34, 0]} castShadow>
+          {(stage >= 3 || building.milestoneCount >= 2) && <mesh position={[0, 0.45 + height + 0.34, 0]} castShadow>
             <boxGeometry args={[0.76, 0.16, 0.24]} />
             <meshStandardMaterial color={color} transparent opacity={opacity} roughness={0.7} />
           </mesh>}
@@ -244,7 +250,7 @@ function WorkshopModel({ building, color, opacity, night, lightIntensity, glow }
               opacity={opacity}
             />
           )}
-          {stage >= 3 && <WorkshopExtension color={color} opacity={opacity} />}
+          {(stage >= 3 || building.milestoneCount >= 2) && <WorkshopExtension color={color} opacity={opacity} />}
         </>
       )}
       {night && <NightLight position={[0, 0.92, -0.86]} opacity={opacity} intensity={lightIntensity} glow={glow} color="#ffbd69" />}
@@ -277,11 +283,15 @@ function BridgeModel({ building, color, opacity, night, lightIntensity, glow }: 
         <>
           <LocalModel src={getDecorationModelPath("bridge-pillar")} position={[-0.82, 0.38, 0]} targetHeight={0.92} opacity={opacity} />
           <LocalModel src={getDecorationModelPath("bridge-pillar")} position={[0.82, 0.38, 0]} targetHeight={0.92} opacity={opacity} />
-          <BridgeRail color={color} opacity={opacity} established={stage >= 3} />
+          <BridgeRail color={color} opacity={opacity} established={stage >= 3 || building.milestoneCount >= 2} />
         </>
       )}
+      {night && <LocalModel src={getDecorationModelPath("light-square")} position={[-0.82, 0.38, -0.22]} targetHeight={0.62} opacity={opacity} />}
       {night && <NightLight position={[-0.82, 0.7, -0.22]} opacity={opacity} intensity={lightIntensity} glow={glow} />}
-      {night && stage >= 3 && <NightLight position={[0.82, 0.7, 0.22]} opacity={opacity} intensity={lightIntensity} glow={glow} />}
+      {night && stage >= 3 && <>
+        <LocalModel src={getDecorationModelPath("light-square")} position={[0.82, 0.38, 0.22]} targetHeight={0.62} opacity={opacity} />
+        <NightLight position={[0.82, 0.7, 0.22]} opacity={opacity} intensity={lightIntensity} glow={glow} />
+      </>}
     </group>
   )
 }
@@ -305,7 +315,7 @@ function TowerModel({ building, color, opacity, night, lightIntensity, glow }: B
           opacity={opacity}
         />
       )}
-      {stage >= 2 && <TowerCrown color={color} opacity={opacity} />}
+      {(stage >= 2 || building.milestoneCount >= 1) && <TowerCrown color={color} opacity={opacity} />}
       {night && <NightLight position={[0, stage >= 3 ? 4.72 : 3.62, 0]} opacity={opacity} intensity={lightIntensity} glow={glow} color="#ffe8a9" />}
     </group>
   )
@@ -332,7 +342,7 @@ function LighthouseModel({ building, color, opacity, night, lightIntensity, glow
             <cylinderGeometry args={[0.62, 0.62, 0.14, 16]} />
             <meshStandardMaterial color={color} transparent opacity={opacity} roughness={0.75} />
           </mesh>
-          {stage >= 2 && <>
+          {(stage >= 2 || building.milestoneCount >= 1) && <>
             <mesh position={[0, 0.56 + towerHeight, 0]} castShadow>
               <cylinderGeometry args={[0.42, 0.42, 0.42, 12]} />
               <meshStandardMaterial color={GLASS} transparent opacity={0.72 * opacity} roughness={0.18} metalness={0.1} />
@@ -345,6 +355,10 @@ function LighthouseModel({ building, color, opacity, night, lightIntensity, glow
         </>
       )}
       {night && stage >= 2 && <NightLight position={[0, 0.56 + towerHeight, 0]} opacity={opacity} intensity={lightIntensity} glow={glow} color="#ffe8a9" />}
+      {night && stage >= 2 && <mesh position={[0.62, 0.56 + towerHeight, 0]} rotation={[0, 0, -Math.PI / 2]}>
+        <coneGeometry args={[0.28, 1.2, 16, 1, true]} />
+        <meshBasicMaterial color="#ffe8a9" transparent opacity={0.08 * opacity * lightIntensity} depthWrite={false} />
+      </mesh>}
     </group>
   )
 }

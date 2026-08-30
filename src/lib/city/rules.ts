@@ -201,9 +201,12 @@ export function projectCity(habits: Habit[], checkIns: CheckIn[]) {
   return elements
 }
 
-export function getMilestoneCount(habitId: string, checkIns: CheckIn[]) {
+export function getMilestoneCount(habitId: string, checkIns: CheckIn[]): 0 | 1 | 2 | 3 {
   const count = getHabitCheckIns(habitId, checkIns).length
-  return [7, 30, 100].filter((milestone) => count >= milestone).length
+  if (count >= 100) return 3
+  if (count >= 30) return 2
+  if (count >= 7) return 1
+  return 0
 }
 
 export function getMostRecentDate(checkIns: CheckIn[]) {
