@@ -518,6 +518,51 @@ test("creates a habit from the city modal and reveals its building", async ({
   ).toBeVisible();
 });
 
+test("keeps Park and Bridge selections semantic on the city map", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/city");
+
+  const createHabit = async (name: string, building: "Park" | "Bridge") => {
+    await page.getByRole("button", { name: "Add habit" }).first().click();
+    await page.getByLabel("What do you want to repeat?").fill(name);
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: building, exact: true }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByRole("button", { name: /place the foundation/i }).click();
+    await expect(page).toHaveURL(/\/city\/?$/);
+  };
+
+  await createHabit("Morning park walk", "Park");
+  await expect(page.locator('[data-city-renderer="3d"]')).toHaveAttribute(
+    "data-city-building-presentations",
+    "park-landscape",
+  );
+
+  await createHabit("Call across the bridge", "Bridge");
+  const renderer = page.locator('[data-city-renderer="3d"]');
+  await expect(renderer).toHaveAttribute(
+    "data-city-building-presentations",
+    /park-landscape.*road-bridge/,
+  );
+
+  await page.getByRole("button", { name: "More city actions" }).click();
+  await page.getByRole("menuitem", { name: "Preview lighting" }).hover();
+  await page.getByRole("menuitemradio", { name: "Night" }).click();
+  await expect(page.locator('[data-city-mode="immersive"]')).toHaveAttribute(
+    "data-city-time-preview",
+    "night",
+  );
+  await expect(renderer).toHaveAttribute("data-city-time-of-day", "night");
+
+  await page.reload();
+  await expect(page.locator('[data-city-mode="immersive"]')).toHaveAttribute(
+    "data-city-time-preview",
+    "auto",
+  );
+});
+
 test("arranges a building, protects drafts, saves, undoes, and persists", async ({
   page,
 }) => {
